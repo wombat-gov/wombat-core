@@ -1,18 +1,18 @@
-# WAF++ PASS — wafpass-core
+# WOMBATpass — wombat-core
 
-**WAF++ PASS** (`wafpass-core` v1.0.0) is the compliance engine, CLI tool, and result schema contract for the [WAF++ framework](https://waf2p.dev).
+**WOMBATpass** (`wombat-core` v1.0.0) is the compliance engine, CLI tool, and result schema contract for the [Wombat framework](https://www.wombat-gov.dev).
 
 It checks IaC (Infrastructure-as-Code) files against YAML control definitions and produces a structured compliance report. As of v1.0.0 it is the core library in a three-component monorepo:
 
 | Component | Package | Description |
 |-----------|---------|-------------|
-| **`pass/`** | `wafpass-core` | Engine, CLI, IaC adapters, result schema ← **this module** |
-| **`wafpass-server/`** | `wafpass-server` | FastAPI + PostgreSQL API for persisting scan results |
+| **`pass/`** | `wombat-core` | Engine, CLI, IaC adapters, result schema ← **this module** |
+| **`wafpass-server/`** | `wombat-server` | FastAPI + PostgreSQL API for persisting scan results |
 | **`wafpass-dashboard/`** | — (React) | Standalone dashboard consuming the server API |
 
 Supported IaC frameworks are loaded as **plugins** — Terraform, AWS CDK (TypeScript), and Pulumi (Python) are fully implemented; Bicep is available as a stub ready for contribution.
 
-> **BREAKING CHANGE:** The server API is now versioned under `/api/v1`. CLI commands that push to or read from `wafpass-server` have been updated to use `/api/v1/runs`, `/api/v1/controls`, `/api/v1/evidence`, etc. Update `WAFPASS_SERVER_URL` and any `--push` URLs accordingly.
+> **BREAKING CHANGE:** The server API is now versioned under `/api/v1`. CLI commands that push to or read from `wombat-server` have been updated to use `/api/v1/runs`, `/api/v1/controls`, `/api/v1/evidence`, etc. Update `WOMBAT_SERVER_URL` and any `--push` URLs accordingly.
 
 ## Installation
 
@@ -21,9 +21,9 @@ Supported IaC frameworks are loaded as **plugins** — Terraform, AWS CDK (TypeS
 Download the latest `.whl` from the [GitHub Releases page](https://github.com/WAF2p/wafpass-core/releases) and install it:
 
 ```bash
-pip install wafpass_core-*.whl
+pip install wombat_core-*.whl
 # or with uv (recommended)
-uv pip install wafpass_core-*.whl
+uv pip install wombat_core-*.whl
 ```
 
 ### Option B — From source
@@ -54,14 +54,14 @@ cd pass
 uv pip install -e .
 
 # Verify
-wafpass -V
+wombat -V
 ```
 
-> **Rosetta not required.** WAF++ PASS is pure Python and runs natively on arm64.
+> **Rosetta not required.** WOMBATpass is pure Python and runs natively on arm64.
 
 ## Pre-commit hook
 
-WAF++ PASS ships a pre-commit hook that runs `wafpass check` against staged IaC files before every commit — blocking non-compliant code before it enters git history.  The hook is stored in `hooks/` and works with the standard git CLI, VS Code, and IntelliJ / JetBrains IDEs without any IDE-specific setup.
+WOMBATpass ships a pre-commit hook that runs `wombat check` against staged IaC files before every commit — blocking non-compliant code before it enters git history.  The hook is stored in `hooks/` and works with the standard git CLI, VS Code, and IntelliJ / JetBrains IDEs without any IDE-specific setup.
 
 ### Install
 
@@ -86,12 +86,12 @@ On every `git commit` the hook detects staged IaC file types and runs the approp
 | `*.ts` when `cdk.json` is present | CDK |
 | `*.py` when `Pulumi.yaml` is present | Pulumi |
 
-If staged files include `controls/*.yml`, those are validated with `wafpass control validate` as well.
+If staged files include `controls/*.yml`, those are validated with `wombat control validate` as well.
 
 When a check fails the commit is blocked and the hook prints:
 
 ```
-[wafpass] compliance check FAILED.
+[wombat] compliance check FAILED.
 
   Options:
     • Fix the violations in your IaC code
@@ -105,56 +105,56 @@ Set any of these as environment variables or in `.env`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `WAFPASS_CONTROLS_DIR` | `controls` | Path to the controls directory |
-| `WAFPASS_SEVERITY` | `high` | Minimum severity to enforce |
-| `WAFPASS_FAIL_ON` | `fail` | `fail` / `skip` / `any` — when to exit non-zero |
-| `WAFPASS_STRICT` | `0` | `1` = abort the commit when wafpass is not installed |
+| `WOMBAT_CONTROLS_DIR` | `controls` | Path to the controls directory |
+| `WOMBAT_SEVERITY` | `high` | Minimum severity to enforce |
+| `WOMBAT_FAIL_ON` | `fail` | `fail` / `skip` / `any` — when to exit non-zero |
+| `WOMBAT_STRICT` | `0` | `1` = abort the commit when wombat is not installed |
 
-If `wafpass` is not found on `PATH` and `WAFPASS_STRICT` is `0` (the default), the hook prints a warning and lets the commit through.  This keeps the team unblocked during onboarding or on machines where wafpass is not yet installed.
+If `wombat` is not found on `PATH` and `WOMBAT_STRICT` is `0` (the default), the hook prints a warning and lets the commit through.  This keeps the team unblocked during onboarding or on machines where wombat is not yet installed.
 
 ### IDE notes
 
 **VS Code** — the built-in Git integration runs `.git/hooks` automatically.  No extra configuration needed.
 
-**IntelliJ / JetBrains IDEs** — git hooks are enabled by default (Settings → Version Control → Git → "Run Git hooks").  If wafpass is not found, go to Settings → Tools → Terminal, set the **Shell path** to your login shell (e.g. `/bin/zsh`), and restart the IDE so it inherits your full `PATH`.  Alternatively set `WAFPASS_STRICT=0` to make the hook advisory rather than blocking.
+**IntelliJ / JetBrains IDEs** — git hooks are enabled by default (Settings → Version Control → Git → "Run Git hooks").  If wombat is not found, go to Settings → Tools → Terminal, set the **Shell path** to your login shell (e.g. `/bin/zsh`), and restart the IDE so it inherits your full `PATH`.  Alternatively set `WOMBAT_STRICT=0` to make the hook advisory rather than blocking.
 
 ---
 
 ## Python library API
 
-`wafpass-core` can be used as a library as well as a CLI:
+`wombat-core` can be used as a library as well as a CLI:
 
 ```python
-from wafpass import run_scan, WafpassResultSchema
+from wombat import run_scan, WombatResultSchema
 
-result: WafpassResultSchema = run_scan(
+result: WombatResultSchema = run_scan(
     paths=["infra/"],
     controls_dir="controls/",
 )
 
 print(result.score)                        # overall compliance score (0–100)
 print(result.pillar_scores)                # {"SEC": 90, "OPS": 75, ...}
-print(result.model_dump_json(indent=2))    # wafpass-result.json payload
+print(result.model_dump_json(indent=2))    # wombat-result.json payload
 
-# Post to wafpass-server (or set WAFPASS_SERVER_URL=http://localhost:8000/api/v1/runs to push automatically)
+# Post to wombat-server (or set WOMBAT_SERVER_URL=http://localhost:8000/api/v1/runs to push automatically)
 import httpx
 httpx.post("http://localhost:8000/api/v1/runs", content=result.model_dump_json(),
            headers={"Content-Type": "application/json"})
 ```
 
-Public symbols exported from `wafpass`:
+Public symbols exported from `wombat`:
 
 | Symbol | Type | Description |
 |--------|------|-------------|
-| `run_scan()` | function | Run a compliance scan, return `WafpassResultSchema` |
-| `WafpassResultSchema` | Pydantic model | Top-level `wafpass-result.json` contract |
+| `run_scan()` | function | Run a compliance scan, return `WombatResultSchema` |
+| `WombatResultSchema` | Pydantic model | Top-level `wombat-result.json` contract |
 | `FindingSchema` | Pydantic model | Single finding within a result |
 | `Report` | dataclass | Internal report (used by CLI, PDF reporter) |
 | `IaCPlugin`, `IaCBlock`, `IaCState` | Protocol types | IaC adapter interfaces |
 
 ## Result schema
 
-`wafpass-result.json` is the contract between `wafpass-core` and all consumers (CI pipelines, `wafpass-server`, dashboards). It is defined in `wafpass/schema.py` and is the **single source of truth** — never duplicated.
+`wombat-result.json` is the contract between `wombat-core` and all consumers (CI pipelines, `wombat-server`, dashboards). It is defined in `wombat/schema.py` and is the **single source of truth** — never duplicated.
 
 ```json
 {
@@ -186,13 +186,13 @@ Public symbols exported from `wafpass`:
 Generate from the CLI:
 
 ```bash
-wafpass check ./infra/ --output json > wafpass-result.json
+wombat check ./infra/ --output json > wombat-result.json
 
 # Enrich with VCS metadata before posting to the server
 python - <<'EOF'
 import json, subprocess, httpx
 
-result = json.load(open("wafpass-result.json"))
+result = json.load(open("wombat-result.json"))
 result.update({
     "project":      "my-infra",
     "branch":       subprocess.check_output(["git","rev-parse","--abbrev-ref","HEAD"]).decode().strip(),
@@ -206,18 +206,18 @@ EOF
 To let the dashboard render Local preview diffs for auto-fix, include source snapshots when you generate the result:
 
 ```bash
-wafpass check ./infra/ --output json --upload-source > wafpass-result.json
+wombat check ./infra/ --output json --upload-source > wombat-result.json
 ```
 
 ## Controls directory setup
 
-PASS reads controls from a local `controls/` directory. Controls are **not bundled** with the tool — they are published separately by the WAF++ framework and must be downloaded once before the first run.
+PASS reads controls from a local `controls/` directory. Controls are **not bundled** with the tool — they are published separately by the Wombat framework and must be downloaded once before the first run.
 
-If you run `wafpass check` without controls present, the tool will print step-by-step download instructions and exit with a helpful error.
+If you run `wombat check` without controls present, the tool will print step-by-step download instructions and exit with a helpful error.
 
-**Option A — Download from the WAF++ website (no Git required):**
+**Option A — Download from the Wombat website (no Git required):**
 
-1. Visit **https://waf2p.dev/wafpass/** and click **"Download Controls"**
+1. Visit **https://www.wombat-gov.dev/wombat/** and click **"Download Controls"**
 2. Unzip the archive and copy the YAML files into your controls directory:
 
 ```bash
@@ -231,50 +231,50 @@ git clone https://github.com/WAF2p/framework.git
 cp framework/modules/controls/controls/*.yml controls/
 ```
 
-Then run `wafpass check` as normal. Use `--controls-dir /path/to/controls` if your controls live outside the project root.
+Then run `wombat check` as normal. Use `--controls-dir /path/to/controls` if your controls live outside the project root.
 
-## Authentication (`wafpass login`)
+## Authentication (`wombat login`)
 
-WAF++ PASS can push scan results directly to a `wafpass-server` instance. Log in once to store a session token — subsequent `wafpass check --push @` calls use it automatically.
+WOMBATpass can push scan results directly to a `wombat-server` instance. Log in once to store a session token — subsequent `wombat check --push @` calls use it automatically.
 
 ```bash
-# Log in and store session (tokens saved to ~/.wafpass/credentials.json, chmod 600)
-wafpass login https://wafpass.example.com
+# Log in and store session (tokens saved to ~/.wombat/credentials.json, chmod 600)
+wombat login https://wombat.example.com
 
 # Show the stored session
-wafpass whoami
+wombat whoami
 
 # Revoke session (local + server-side)
-wafpass logout
+wombat logout
 ```
 
-Credentials file: `~/.wafpass/credentials.json`. Only JWT tokens are stored — the password is **never** written to disk. The access token is auto-refreshed when expired (30-second grace window).
+Credentials file: `~/.wombat/credentials.json`. Only JWT tokens are stored — the password is **never** written to disk. The access token is auto-refreshed when expired (30-second grace window).
 
 ```bash
 # Push scan results using stored credentials
-wafpass check ./infra/ --push @
+wombat check ./infra/ --push @
 
 # Push to an explicit URL with an API key (no login required)
-wafpass check ./infra/ --output json --push http://localhost:8000/api/v1/runs --api-key $WAFPASS_API_KEY
+wombat check ./infra/ --output json --push http://localhost:8000/api/v1/runs --api-key $WOMBAT_API_KEY
 
 # Upload source snapshots so the dashboard can render Local preview diffs
-wafpass check ./infra/ --output json --push @ --upload-source
+wombat check ./infra/ --output json --push @ --upload-source
 
 # Auto-push via environment variable (equivalent to --push URL)
-WAFPASS_SERVER_URL=http://localhost:8000/api/v1/runs wafpass check ./infra/
+WOMBAT_SERVER_URL=http://localhost:8000/api/v1/runs wombat check ./infra/
 ```
 
 > **Dashboard auto-fix / Local preview:** The dashboard can show git-style diffs for auto-fix suggestions only when the run includes the original source files for the selected IaC plugin (e.g. `.tf`, `.ts`, or `.py`). Add `--upload-source` whenever you push results that will be reviewed in the dashboard's **Auto-Fix** page. Requires `--output json` and `--push`.
 
 ---
 
-## Evidence commands (`wafpass evidence`)
+## Evidence commands (`wombat evidence`)
 
 Lock server-side run snapshots as cryptographically-signed, immutable audit packages.
 
 ```bash
 # Lock a run as an evidence package
-wafpass evidence lock \
+wombat evidence lock \
   --run-id <uuid> \
   --title "Q1 2026 SOC2 Evidence" \
   --prepared-by "Jane Smith" \
@@ -283,12 +283,12 @@ wafpass evidence lock \
   --frameworks "SOC2,ISO 27001"
 
 # List locked evidence packages
-wafpass evidence list
-wafpass evidence list --project my-infra --limit 10
+wombat evidence list
+wombat evidence list --project my-infra --limit 10
 
 # Show evidence package details (includes SHA-256 hash and public URL)
-wafpass evidence show <evidence-id>
-wafpass evidence show <evidence-id> --hash   # print only the hash digest
+wombat evidence show <evidence-id>
+wombat evidence show <evidence-id> --hash   # print only the hash digest
 ```
 
 Each locked package gets a SHA-256 hash of its canonical snapshot and a unique public token. Auditors access the frozen HTML report at `/api/v1/evidence/p/{token}` — no login required.
@@ -299,55 +299,55 @@ Each locked package gets a SHA-256 hash of its canonical snapshot and a unique p
 
 ```bash
 # Check all controls against a Terraform directory (default plugin)
-wafpass check ./infra/
+wombat check ./infra/
 
 # Explicitly select the Terraform plugin
-wafpass check ./infra/ --iac terraform
+wombat check ./infra/ --iac terraform
 
 # Check a CDK project (reads cdk.out/*.template.json)
-wafpass check ./my-cdk-app/ --iac cdk
+wombat check ./my-cdk-app/ --iac cdk
 
 # Multi-cloud: scan multiple folders and merge into a single report
-wafpass check ./aws ./azure ./gcp
+wombat check ./aws ./azure ./gcp
 
 # Filter by pillar
-wafpass check ./infra/ --pillar cost
+wombat check ./infra/ --pillar cost
 
 # Run specific controls only
-wafpass check ./infra/ --controls WAF-COST-010,WAF-COST-020
+wombat check ./infra/ --controls WAF-COST-010,WAF-COST-020
 
 # Filter by minimum severity and show all results
-wafpass check ./infra/ --severity high --verbose
+wombat check ./infra/ --severity high --verbose
 
 # Exit non-zero if any check is skipped (strictest mode)
-wafpass check ./infra/ --fail-on any
+wombat check ./infra/ --fail-on any
 
 # Use a custom controls directory
-wafpass check ./infra/ --controls-dir /path/to/controls
+wombat check ./infra/ --controls-dir /path/to/controls
 
 # Show only the summary table
-wafpass check ./infra/ --summary
+wombat check ./infra/ --summary
 
 # Generate a PDF report (includes carbon footprint automatically)
-wafpass check ./aws ./azure --output pdf --pdf-out report.pdf
+wombat check ./aws ./azure --output pdf --pdf-out report.pdf
 
 # PDF + blast radius + secret scan
-wafpass check ./infra/ --output pdf --pdf-out report.pdf --blast-radius
+wombat check ./infra/ --output pdf --pdf-out report.pdf --blast-radius
 
 # Disable hardcoded-secret scanning
-wafpass check ./infra/ --no-secrets
+wombat check ./infra/ --no-secrets
 
 # Print version
-wafpass --version
+wombat --version
 
 # Auto-fix failing checks (dry-run by default)
-wafpass fix ./infra/
-wafpass fix ./infra/ --apply
+wombat fix ./infra/
+wombat fix ./infra/ --apply
 
 # Web UI server management
-wafpass ui start
-wafpass ui status
-wafpass ui stop
+wombat ui start
+wombat ui status
+wombat ui stop
 ```
 
 ### PDF report structure
@@ -368,7 +368,7 @@ The PDF report is divided into five parts plus an appendix, each introduced by a
 Pass multiple paths to `check` to scan IaC code spread across separate folders (e.g. one per cloud provider) and get a single unified report:
 
 ```bash
-wafpass check ./infra/aws ./infra/azure ./infra/gcp
+wombat check ./infra/aws ./infra/azure ./infra/gcp
 ```
 
 Each path is parsed independently; resources, providers, and detected regions are merged before controls are evaluated. All other flags (`--pillar`, `--fail-on`, `--output`, etc.) apply to the merged result as usual. When multiple paths are provided, the tool prints a `Scanning [terraform]: <path>` line for each one so progress is visible in CI logs.
@@ -389,14 +389,14 @@ infra/
 ```
 
 ```bash
-wafpass check infra/aws infra/azure infra/gcp --fail-on fail
+wombat check infra/aws infra/azure infra/gcp --fail-on fail
 ```
 
 ---
 
 ## IaC plugin system
 
-WAF++ PASS uses a plugin architecture so that different IaC frameworks can be supported without changing the core engine or the YAML control definitions.
+WOMBATpass uses a plugin architecture so that different IaC frameworks can be supported without changing the core engine or the YAML control definitions.
 
 ### Available plugins
 
@@ -413,12 +413,12 @@ Stub plugins register themselves in the global registry and log a clear warning 
 
 ```bash
 # Default (Terraform)
-wafpass check ./infra/
+wombat check ./infra/
 
 # Explicit plugin selection
-wafpass check ./cdk-app/ --iac cdk
-wafpass check ./bicep-modules/ --iac bicep
-wafpass check ./pulumi-app/ --iac pulumi
+wombat check ./cdk-app/ --iac cdk
+wombat check ./bicep-modules/ --iac bicep
+wombat check ./pulumi-app/ --iac pulumi
 ```
 
 ### How plugins work
@@ -439,12 +439,12 @@ class IaCPlugin(Protocol):
 
 ### Writing a new plugin
 
-1. Create `wafpass/iac/plugins/myframework.py`:
+1. Create `wombat/iac/plugins/myframework.py`:
 
 ```python
 from pathlib import Path
-from wafpass.iac.base import IaCBlock, IaCPlugin, IaCState
-from wafpass.iac.registry import registry
+from wombat.iac.base import IaCBlock, IaCPlugin, IaCState
+from wombat.iac.registry import registry
 
 class MyFrameworkPlugin:
     name = "myframework"
@@ -465,13 +465,13 @@ class MyFrameworkPlugin:
 registry.register(MyFrameworkPlugin())
 ```
 
-2. Add an import to `wafpass/iac/plugins/__init__.py`:
+2. Add an import to `wombat/iac/plugins/__init__.py`:
 
 ```python
-from wafpass.iac.plugins import myframework  # noqa: F401
+from wombat.iac.plugins import myframework  # noqa: F401
 ```
 
-3. Write WAF++ controls with `engine: myframework` in the YAML `checks:` section.
+3. Write Wombat controls with `engine: myframework` in the YAML `checks:` section.
 
 ### IaCState and IaCBlock
 
@@ -493,7 +493,7 @@ Each `IaCBlock` carries:
 
 ### Controls and the `engine` field
 
-Each check in a WAF++ control YAML declares which engine it targets:
+Each check in a Wombat control YAML declares which engine it targets:
 
 ```yaml
 checks:
@@ -503,7 +503,7 @@ checks:
     …
 ```
 
-When you run `wafpass check --iac cdk`, only checks with `engine: cdk` are evaluated; Terraform-specific checks are silently skipped. This lets a single control file hold checks for multiple frameworks side by side.
+When you run `wombat check --iac cdk`, only checks with `engine: cdk` are evaluated; Terraform-specific checks are silently skipped. This lets a single control file hold checks for multiple frameworks side by side.
 
 ### CDK plugin
 
@@ -529,7 +529,7 @@ The CDK plugin parses synthesised CloudFormation templates (`cdk.out/*.template.
 
 **Region detection** reads `aws://ACCOUNT/REGION` environment strings from `cdk.out/manifest.json`.
 
-**CDK checks shipped with WAF++ controls**
+**CDK checks shipped with Wombat controls**
 
 | Control | Check | What it verifies |
 |---------|-------|-----------------|
@@ -570,13 +570,13 @@ The template intentionally contains both **compliant** and **non-compliant** res
 
 ```bash
 # Run the CDK plugin against the demo project
-wafpass check ../dummy_cdk --iac cdk --verbose
+wombat check ../dummy_cdk --iac cdk --verbose
 
 # Summary only
-wafpass check ../dummy_cdk --iac cdk --summary
+wombat check ../dummy_cdk --iac cdk --summary
 
 # Filter to the 5 controls that have CDK checks
-wafpass check ../dummy_cdk --iac cdk \
+wombat check ../dummy_cdk --iac cdk \
   --controls WAF-COST-010,WAF-COST-040,WAF-SOV-030,WAF-SOV-050,WAF-REL-010 \
   --verbose
 ```
@@ -594,10 +594,10 @@ Some controls may not apply to your setup, or you may have accepted the risk thr
 
 ### Waiver file format
 
-Create a `.wafpass-skip.yml` file (auto-discovered in the current directory, or specify a path with `--skip-file`):
+Create a `.wombat-skip.yml` file (auto-discovered in the current directory, or specify a path with `--skip-file`):
 
 ```yaml
-# .wafpass-skip.yml
+# .wombat-skip.yml
 waivers:
   - id: WAF-SEC-020
     reason: "Handled by quarterly external IAM review — tracked in SEC-1234"
@@ -612,7 +612,7 @@ waivers:
 ```
 
 Each entry requires:
-- `id` — the WAF++ control ID (e.g. `WAF-SEC-020`)
+- `id` — the Wombat control ID (e.g. `WAF-SEC-020`)
 - `reason` — a mandatory plain-text justification
 
 And optionally:
@@ -621,14 +621,14 @@ And optionally:
 ### Using waivers
 
 ```bash
-# Auto-discovery: place .wafpass-skip.yml in the current directory
-wafpass check ./infra/
+# Auto-discovery: place .wombat-skip.yml in the current directory
+wombat check ./infra/
 
 # Explicit path
-wafpass check ./infra/ --skip-file ./compliance/accepted-risks.yml
+wombat check ./infra/ --skip-file ./compliance/accepted-risks.yml
 
 # Works with multi-cloud paths too
-wafpass check ./aws ./azure --skip-file ./accepted-risks.yml
+wombat check ./aws ./azure --skip-file ./accepted-risks.yml
 ```
 
 Console output shows the waiver reason inline:
@@ -654,8 +654,8 @@ If a waiver has expired, the tool prints a warning to stderr but continues norma
 
 ```yaml
 # GitHub Actions: block on failures, allow waivers
-- name: Run WAF++ PASS
-  run: wafpass check ./infra/ --skip-file compliance/accepted-risks.yml --fail-on fail
+- name: Run WOMBATpass
+  run: wombat check ./infra/ --skip-file compliance/accepted-risks.yml --fail-on fail
 ```
 
 ---
@@ -671,7 +671,7 @@ Risk acceptances differ from waivers in two ways:
 
 ### `risk_acceptance.yml`
 
-Drop a `risk_acceptance.yml` file in the directory you pass to `wafpass check`. PASS auto-discovers it before falling back to `.wafpass-skip.yml`.
+Drop a `risk_acceptance.yml` file in the directory you pass to `wombat check`. PASS auto-discovers it before falling back to `.wombat-skip.yml`.
 
 ```yaml
 # risk_acceptance.yml
@@ -693,10 +693,10 @@ Each entry requires `id` and `reason`. `expires` is optional (ISO-8601); expired
 
 ```bash
 # Auto-discovery: place risk_acceptance.yml in the current directory
-wafpass check ./infra/
+wombat check ./infra/
 
 # Explicit path
-wafpass check ./infra/ --skip-file ./compliance/risk_acceptance.yml
+wombat check ./infra/ --skip-file ./compliance/risk_acceptance.yml
 ```
 
 ### PDF Risk Acceptance Register
@@ -713,15 +713,15 @@ The **Risk Acceptance** page in the web UI (`#risk-acceptance`) provides a full 
 
 ---
 
-## Auto-fix (`wafpass fix`)
+## Auto-fix (`wombat fix`)
 
-`wafpass fix` analyses your IaC files, determines which failing assertions can be patched automatically, and either previews a coloured diff or writes the changes to disk.
+`wombat fix` analyses your IaC files, determines which failing assertions can be patched automatically, and either previews a coloured diff or writes the changes to disk.
 
 ### How it works
 
 The engine:
 
-1. Runs the same check pipeline as `wafpass check`.
+1. Runs the same check pipeline as `wombat check`.
 2. Builds a framework-specific `ResourceLocator` that scans the plugin's file extensions (e.g. `.tf`, `.ts`, `.py`) and maps resources back to their source files.
 3. For each failing assertion derives the minimum change needed — e.g. `is_true → true`, `equals 14 → 14`, `in ["AES256","aws:kms"] → "AES256"`.
 4. Deduplicates patches by `(file, address, attribute)` so the same attribute is never written twice.
@@ -733,22 +733,22 @@ The engine:
 
 ```bash
 # Preview what would change (dry-run)
-wafpass fix ./infra/
+wombat fix ./infra/
 
 # Apply patches and create .bak backups
-wafpass fix ./infra/ --apply
+wombat fix ./infra/ --apply
 
 # Apply without backups
-wafpass fix ./infra/ --apply --no-backup
+wombat fix ./infra/ --apply --no-backup
 
 # Scope to a single pillar
-wafpass fix ./infra/ --pillar security
+wombat fix ./infra/ --pillar security
 
 # Scope to specific controls
-wafpass fix ./infra/ --controls WAF-SEC-010,WAF-REL-030
+wombat fix ./infra/ --controls WAF-SEC-010,WAF-REL-030
 
 # Fix only high-severity and above
-wafpass fix ./infra/ --severity high --apply
+wombat fix ./infra/ --severity high --apply
 ```
 
 ### What can be auto-fixed
@@ -794,9 +794,9 @@ After `--apply` the command re-runs the checks and reports a **delta**: how many
 
 ## Hardcoded secret detection
 
-WAF++ PASS scans your IaC source files for hardcoded credentials **before** evaluating controls. Findings are printed prominently to the console and included as the first section of the PDF report.
+WOMBATpass scans your IaC source files for hardcoded credentials **before** evaluating controls. Findings are printed prominently to the console and included as the first section of the PDF report.
 
-The scanner is **enabled by default** on every `wafpass check` run. Disable it with `--no-secrets` if needed.
+The scanner is **enabled by default** on every `wombat check` run. Disable it with `--no-secrets` if needed.
 
 ### What is detected
 
@@ -880,7 +880,7 @@ password = data.vault_generic_secret.db.data["password"]
 If a value is intentionally non-sensitive (e.g. a known-public test credential or a CI seed value), suppress the finding on that line with an inline comment:
 
 ```hcl
-password = "ci-seed-only-not-real"  # wafpass:ignore-secret  reason: non-sensitive CI seed value
+password = "ci-seed-only-not-real"  # wombat:ignore-secret  reason: non-sensitive CI seed value
 ```
 
 Suppressed findings are excluded from the console output and counted separately in the PDF report. Use sparingly — every suppression should include a `reason`.
@@ -889,22 +889,22 @@ Suppressed findings are excluded from the console output and counted separately 
 
 ```bash
 # Run with secret scanning (default)
-wafpass check ./infra/
+wombat check ./infra/
 
 # Disable secret scanning
-wafpass check ./infra/ --no-secrets
+wombat check ./infra/ --no-secrets
 ```
 
 ---
 
 ## Run versioning & change tracking
 
-WAF++ PASS automatically records every run as a versioned JSON snapshot in a local state directory (default: `.wafpass-state/`). On subsequent runs, changes in control status are detected and shown in the console report and the PDF.
+WOMBATpass automatically records every run as a versioned JSON snapshot in a local state directory (default: `.wombat-state/`). On subsequent runs, changes in control status are detected and shown in the console report and the PDF.
 
 ### State directory layout
 
 ```
-.wafpass-state/
+.wombat-state/
   index.json          ← lightweight index of all runs (machine-readable)
   runs/
     run-20260321-152251-a1e136bd.json   ← full snapshot per run
@@ -963,45 +963,45 @@ The same information appears as a dedicated **Run Change Tracking** page in PDF 
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--state-dir PATH` | `.wafpass-state` | Directory for versioned state files |
+| `--state-dir PATH` | `.wombat-state` | Directory for versioned state files |
 | `--no-state` | off | Disable state saving and change tracking |
 
 ```bash
 # Use a custom state directory (e.g. shared across teams via a mounted volume)
-wafpass check ./infra/ --state-dir /var/wafpass-state
+wombat check ./infra/ --state-dir /var/wombat-state
 
 # Disable state tracking (useful for one-off ad-hoc runs)
-wafpass check ./infra/ --no-state
+wombat check ./infra/ --no-state
 ```
 
 ---
 
 ## Monitoring & observability export plugins
 
-WAF++ PASS ships a monitoring export plugin system that pushes run snapshots to external observability platforms after every check. This feeds dashboards, alerts, and time-series trend analysis without requiring a separate CI job.
+WOMBATpass ships a monitoring export plugin system that pushes run snapshots to external observability platforms after every check. This feeds dashboards, alerts, and time-series trend analysis without requiring a separate CI job.
 
 ### Quick start
 
 ```bash
 # Push to Grafana via Prometheus Pushgateway
-wafpass check ./infra/ --export grafana
+wombat check ./infra/ --export grafana
 
 # Push to multiple targets in one run
-wafpass check ./infra/ --export grafana,slack,webhook
+wombat check ./infra/ --export grafana,slack,webhook
 ```
 
 ### Export config file
 
-Create `.wafpass-export.yml` in your working directory (auto-discovered) or pass `--export-config`:
+Create `.wombat-export.yml` in your working directory (auto-discovered) or pass `--export-config`:
 
 ```yaml
-# .wafpass-export.yml
+# .wombat-export.yml
 exports:
 
   # ── Grafana via Prometheus Pushgateway (fully implemented) ─────────────────
   grafana:
     pushgateway_url: "http://pushgateway.monitoring.svc:9091"
-    job: "wafpass"                    # Pushgateway job label (default: wafpass)
+    job: "wombat"                    # Pushgateway job label (default: wombat)
     instance: "my-project"            # Pushgateway instance label (default: run_id)
     # username: "12345"               # optional Basic Auth (Grafana Cloud proxy)
     # password: "${GRAFANA_CLOUD_TOKEN}"
@@ -1009,7 +1009,7 @@ exports:
   # ── Prometheus Pushgateway — standalone (stub, delegates to grafana plugin) ──
   prometheus:
     pushgateway_url: "http://pushgateway:9091"
-    job: "wafpass"
+    job: "wombat"
 
   # ── Datadog Metrics API v2 (stub) ─────────────────────────────────────────
   datadog:
@@ -1029,7 +1029,7 @@ exports:
 
   # ── Generic HTTP webhook (fully implemented) ──────────────────────────────
   webhook:
-    url: "https://my-webhook.example.com/wafpass"
+    url: "https://my-webhook.example.com/wombat"
     headers:
       Authorization: "Bearer ${WEBHOOK_TOKEN}"
     include_full_snapshot: true       # false = lightweight summary only
@@ -1050,16 +1050,16 @@ Secret values may use `${ENV_VAR}` placeholders — they are expanded from the e
 
 ### Grafana setup — step-by-step
 
-The full observability stack is three services: **Pushgateway** (receives metrics from WAF++ after each run), **Prometheus** (scrapes and stores them), **Grafana** (visualises them). Everything needed to spin them up is in the `docker/` folder.
+The full observability stack is three services: **Pushgateway** (receives metrics from Wombat after each run), **Prometheus** (scrapes and stores them), **Grafana** (visualises them). Everything needed to spin them up is in the `docker/` folder.
 
 ```
 docker/
   docker-compose.yml                         ← all three services, pre-wired
   prometheus.yml                             ← scrape config for the Pushgateway
-  .wafpass-export.yml                        ← WAF++ export config pointing to localhost
+  .wombat-export.yml                        ← Wombat export config pointing to localhost
   grafana-provisioning/
     datasources/prometheus.yml               ← auto-provisions Prometheus datasource
-    dashboards/dashboard.yml                 ← auto-provisions the WAF++ dashboard
+    dashboards/dashboard.yml                 ← auto-provisions the Wombat dashboard
 ```
 
 ---
@@ -1079,59 +1079,59 @@ Three containers start:
 
 | Container | URL | Credentials |
 |-----------|-----|-------------|
-| Grafana | http://localhost:3000 | admin / wafpass |
+| Grafana | http://localhost:3000 | admin / wombat |
 | Prometheus | http://localhost:9090 | — |
 | Pushgateway | http://localhost:9091 | — |
 
-The WAF++ dashboard and Prometheus datasource are **auto-provisioned** — no manual import needed. Open http://localhost:3000 and navigate to **Dashboards → WAF++ PASS — Compliance Monitor**.
+The Wombat dashboard and Prometheus datasource are **auto-provisioned** — no manual import needed. Open http://localhost:3000 and navigate to **Dashboards → WOMBATpass — Compliance Monitor**.
 
-> **Note:** The dashboard uses HTML text panels to render the embedded WAF++ logo. The compose file sets `GF_PANELS_DISABLE_SANITIZE_HTML=true` to allow this. Remove that variable if you don't need the logo and want stricter HTML policy.
+> **Note:** The dashboard uses HTML text panels to render the embedded Wombat logo. The compose file sets `GF_PANELS_DISABLE_SANITIZE_HTML=true` to allow this. Remove that variable if you don't need the logo and want stricter HTML policy.
 
-**Step 2 — Configure WAF++ to push metrics**
+**Step 2 — Configure Wombat to push metrics**
 
 Copy the included export config to your project root (or use `--export-config`):
 
 ```bash
 # From your IaC project directory:
-cp /path/to/waf++/pass/docker/.wafpass-export.yml ./.wafpass-export.yml
+cp /path/to/wombat/pass/docker/.wombat-export.yml ./.wombat-export.yml
 ```
 
 The file points to `http://localhost:9091` (the Pushgateway from Step 1):
 
 ```yaml
-# .wafpass-export.yml
+# .wombat-export.yml
 exports:
   grafana:
     pushgateway_url: "http://localhost:9091"
-    job: "wafpass"
+    job: "wombat"
 ```
 
-**Step 3 — Run WAF++ and push your first metrics**
+**Step 3 — Run Wombat and push your first metrics**
 
 ```bash
-wafpass check ./infra/ --export grafana
+wombat check ./infra/ --export grafana
 ```
 
 You should see output like:
 
 ```
-Run state saved: .wafpass-state/runs/run-20260321-152251-a1e136bd.json
+Run state saved: .wombat-state/runs/run-20260321-152251-a1e136bd.json
 Exporting to [grafana]...
   ✓ grafana: Pushed to Pushgateway: HTTP 200
 ```
 
 **Step 4 — Open the dashboard**
 
-Go to http://localhost:3000 → **Dashboards → WAF++ PASS — Compliance Monitor**.
+Go to http://localhost:3000 → **Dashboards → WOMBATpass — Compliance Monitor**.
 
-The dashboard auto-refreshes every minute. Run WAF++ a few more times (against different fixture paths or after changing your IaC) to build up trend data:
+The dashboard auto-refreshes every minute. Run Wombat a few more times (against different fixture paths or after changing your IaC) to build up trend data:
 
 ```bash
 # Non-compliant run
-wafpass check tests/fixtures/non_compliant/ --export grafana
+wombat check tests/fixtures/non_compliant/ --export grafana
 
 # Compliant run — watch the improvements appear
-wafpass check tests/fixtures/compliant/ --export grafana
+wombat check tests/fixtures/compliant/ --export grafana
 ```
 
 After two or more runs, the **Change Tracking** row shows regressions, improvements, and score delta. After several runs, the time-series charts show trends.
@@ -1141,13 +1141,13 @@ After two or more runs, the **Change Tracking** row shows regressions, improveme
 Check that metrics arrived in the Pushgateway:
 
 ```
-http://localhost:9091  →  "wafpass" job should appear
+http://localhost:9091  →  "wombat" job should appear
 ```
 
 Check that Prometheus scraped them:
 
 ```
-http://localhost:9090/graph  →  query: wafpass_score
+http://localhost:9090/graph  →  query: wombat_score
 ```
 
 ---
@@ -1156,15 +1156,15 @@ http://localhost:9090/graph  →  query: wafpass_score
 
 If you already have Grafana + Prometheus + a Pushgateway running:
 
-**Step 1 — Point WAF++ at your Pushgateway**
+**Step 1 — Point Wombat at your Pushgateway**
 
-Create `.wafpass-export.yml` in your project root:
+Create `.wombat-export.yml` in your project root:
 
 ```yaml
 exports:
   grafana:
     pushgateway_url: "http://<your-pushgateway-host>:9091"
-    job: "wafpass"
+    job: "wombat"
 ```
 
 **Step 2 — Verify Prometheus scrapes the Pushgateway**
@@ -1173,8 +1173,8 @@ In your `prometheus.yml` (or equivalent), add a scrape job if not already presen
 
 ```yaml
 scrape_configs:
-  - job_name: wafpass
-    honor_labels: true          # ← required: preserves WAF++ label values
+  - job_name: wombat
+    honor_labels: true          # ← required: preserves Wombat label values
     static_configs:
       - targets:
           - <pushgateway-host>:9091
@@ -1190,15 +1190,15 @@ Reload Prometheus: `curl -X POST http://localhost:9090/-/reload`
 4. Under **Prometheus**, select your Prometheus datasource
 5. Click **Import**
 
-The dashboard opens immediately. Run `wafpass check ./infra/ --export grafana` to push the first data point.
+The dashboard opens immediately. Run `wombat check ./infra/ --export grafana` to push the first data point.
 
-> **Logo rendering:** The dashboard embeds the WAF++ logo as a base64 PNG in an HTML text panel. To display it, enable `GF_PANELS_DISABLE_SANITIZE_HTML=true` in Grafana's environment, or add `disable_sanitize_html = true` under `[panels]` in `grafana.ini`. Without this setting, the logo panel shows empty — all metric panels work regardless.
+> **Logo rendering:** The dashboard embeds the Wombat logo as a base64 PNG in an HTML text panel. To display it, enable `GF_PANELS_DISABLE_SANITIZE_HTML=true` in Grafana's environment, or add `disable_sanitize_html = true` under `[panels]` in `grafana.ini`. Without this setting, the logo panel shows empty — all metric panels work regardless.
 
 ---
 
 #### Option C — Grafana Cloud
 
-Grafana Cloud's Prometheus endpoint requires binary `remote_write` format, which the WAF++ export plugin does not produce directly (to avoid heavy protobuf dependencies). The recommended path:
+Grafana Cloud's Prometheus endpoint requires binary `remote_write` format, which the Wombat export plugin does not produce directly (to avoid heavy protobuf dependencies). The recommended path:
 
 **Step 1 — Run a local Pushgateway**
 
@@ -1211,7 +1211,7 @@ docker run -d -p 9091:9091 prom/pushgateway:v1.9.0
 [Grafana Alloy](https://grafana.com/docs/alloy/latest/) is the current recommended agent. Add this scrape + remote_write config:
 
 ```alloy
-prometheus.scrape "wafpass" {
+prometheus.scrape "wombat" {
   targets = [{"__address__" = "localhost:9091"}]
   honor_labels = true
   forward_to   = [prometheus.remote_write.grafana_cloud.receiver]
@@ -1231,7 +1231,7 @@ prometheus.remote_write "grafana_cloud" {
 **Step 3 — Push metrics and import dashboard**
 
 ```bash
-wafpass check ./infra/ --export grafana
+wombat check ./infra/ --export grafana
 ```
 
 In Grafana Cloud: **Dashboards → Import → Upload JSON file** → select `assets/grafana-dashboard.json` → choose your Cloud Prometheus datasource.
@@ -1271,40 +1271,40 @@ All metrics carry labels: `iac_plugin`, `run_id`, `tool_version`, `source`.
 
 | Metric | Type | Description |
 |--------|------|-------------|
-| `wafpass_score` | gauge | Overall risk score (0 = fully compliant, 100 = all critical controls failing) |
-| `wafpass_controls_total{status}` | gauge | Control count by `pass`, `fail`, `skip`, `waived` |
-| `wafpass_checks_total{status}` | gauge | Individual check count by status |
-| `wafpass_pillar_score{pillar}` | gauge | Risk score per WAF++ pillar |
-| `wafpass_control_status{control_id,severity,pillar}` | gauge | Per-control numeric status: 0=PASS 1=FAIL 2=SKIP 3=WAIVED |
-| `wafpass_score_delta` | gauge | Score change vs previous run (+ve = worse, −ve = improved) |
-| `wafpass_regressions_total` | gauge | Controls newly entering FAIL this run |
-| `wafpass_improvements_total` | gauge | Controls leaving FAIL this run |
-| `wafpass_run_timestamp_seconds` | gauge | Unix timestamp of this run |
+| `wombat_score` | gauge | Overall risk score (0 = fully compliant, 100 = all critical controls failing) |
+| `wombat_controls_total{status}` | gauge | Control count by `pass`, `fail`, `skip`, `waived` |
+| `wombat_checks_total{status}` | gauge | Individual check count by status |
+| `wombat_pillar_score{pillar}` | gauge | Risk score per Wombat pillar |
+| `wombat_control_status{control_id,severity,pillar}` | gauge | Per-control numeric status: 0=PASS 1=FAIL 2=SKIP 3=WAIVED |
+| `wombat_score_delta` | gauge | Score change vs previous run (+ve = worse, −ve = improved) |
+| `wombat_regressions_total` | gauge | Controls newly entering FAIL this run |
+| `wombat_improvements_total` | gauge | Controls leaving FAIL this run |
+| `wombat_run_timestamp_seconds` | gauge | Unix timestamp of this run |
 
 **Example alert rules:**
 
 ```promql
 # Fire when any control newly fails
-increase(wafpass_regressions_total[1h]) > 0
+increase(wombat_regressions_total[1h]) > 0
 
 # Fire when overall risk score exceeds threshold
-wafpass_score > 50
+wombat_score > 50
 
 # Fire when a specific critical control fails
-wafpass_control_status{control_id="WAF-SEC-020", severity="critical"} == 1
+wombat_control_status{control_id="WAF-SEC-020", severity="critical"} == 1
 ```
 
 ### Writing a new export plugin
 
-1. Create `wafpass/export/plugins/mytool.py`:
+1. Create `wombat/export/plugins/mytool.py`:
 
 ```python
-from wafpass.export.base import ExportPlugin, ExportResult
-from wafpass.export.registry import registry
+from wombat.export.base import ExportPlugin, ExportResult
+from wombat.export.registry import registry
 
 class MyToolPlugin:
     name = "mytool"
-    description = "Push WAF++ metrics to MyTool."
+    description = "Push Wombat metrics to MyTool."
 
     def export(self, snapshot: dict, config: dict) -> ExportResult:
         url = config.get("url") or ""
@@ -1319,13 +1319,13 @@ class MyToolPlugin:
 registry.register(MyToolPlugin())
 ```
 
-2. Add an import to `wafpass/export/plugins/__init__.py`:
+2. Add an import to `wombat/export/plugins/__init__.py`:
 
 ```python
-from wafpass.export.plugins import mytool  # noqa: F401
+from wombat.export.plugins import mytool  # noqa: F401
 ```
 
-3. Add a config block to `.wafpass-export.yml`:
+3. Add a config block to `.wombat-export.yml`:
 
 ```yaml
 exports:
@@ -1336,26 +1336,26 @@ exports:
 4. Run:
 
 ```bash
-wafpass check ./infra/ --export mytool
+wombat check ./infra/ --export mytool
 ```
 
-The `snapshot` dict passed to `export()` is the complete run snapshot from `wafpass.state.build_run_snapshot()` — see the schema in the **Run versioning** section above.
+The `snapshot` dict passed to `export()` is the complete run snapshot from `wombat.state.build_run_snapshot()` — see the schema in the **Run versioning** section above.
 
 ### CI/CD with export
 
 ```yaml
 # GitHub Actions: push metrics to Grafana on every PR and main branch run
-- name: Run WAF++ PASS + push to Grafana
+- name: Run WOMBATpass + push to Grafana
   env:
     GRAFANA_CLOUD_TOKEN: ${{ secrets.GRAFANA_CLOUD_TOKEN }}
   run: |
     pip install -e .
-    wafpass check ./infra/ \
+    wombat check ./infra/ \
       --fail-on fail \
       --export grafana \
-      --export-config .wafpass-export.yml \
+      --export-config .wombat-export.yml \
       --output pdf \
-      --pdf-out wafpass-report.pdf
+      --pdf-out wombat-report.pdf
 ```
 
 ---
@@ -1365,9 +1365,9 @@ The `snapshot` dict passed to `export()` is the complete run snapshot from `wafp
 When a resource fails a control, other resources that *reference* it inherit part of that risk — this is the blast radius. Run `--blast-radius` to visualise the propagation:
 
 ```bash
-wafpass check ./infra/ --blast-radius
-wafpass check ./infra/ --blast-radius --blast-radius-out diagrams/blast.md
-wafpass check ./infra/ --blast-radius --output pdf --pdf-out report.pdf
+wombat check ./infra/ --blast-radius
+wombat check ./infra/ --blast-radius --blast-radius-out diagrams/blast.md
+wombat check ./infra/ --blast-radius --output pdf --pdf-out report.pdf
 ```
 
 ### How it works
@@ -1421,7 +1421,7 @@ When `--blast-radius` is combined with `--output pdf`, the PDF report includes a
 
 ## Carbon footprint & sustainability
 
-WAF++ PASS automatically estimates the monthly carbon footprint of your cloud infrastructure whenever a PDF report is generated (`--output pdf`). No extra flag is needed.
+WOMBATpass automatically estimates the monthly carbon footprint of your cloud infrastructure whenever a PDF report is generated (`--output pdf`). No extra flag is needed.
 
 ### How the estimate is calculated
 
@@ -1508,32 +1508,32 @@ Moving from `eu-central-1` to `eu-north-1` reduces compute emissions by ~**98%**
 
 PASS is designed to run unattended in pipelines. The exit code reflects the check outcome; use `--fail-on` to tune the strictness.
 
-Run state is saved to `.wafpass-state/` by default. Persist this directory between pipeline runs (via cache or an artifact) to get cross-run change tracking. Without persistence, each run starts fresh with no previous state to compare against.
+Run state is saved to `.wombat-state/` by default. Persist this directory between pipeline runs (via cache or an artifact) to get cross-run change tracking. Without persistence, each run starts fresh with no previous state to compare against.
 
 **GitHub Actions — Terraform (multi-cloud) with state persistence:**
 
 ```yaml
-- name: Restore WAF++ state cache
+- name: Restore Wombat state cache
   uses: actions/cache@v4
   with:
-    path: .wafpass-state
-    key: wafpass-state-${{ github.ref }}
-    restore-keys: wafpass-state-
+    path: .wombat-state
+    key: wombat-state-${{ github.ref }}
+    restore-keys: wombat-state-
 
-- name: Run WAF++ PASS
+- name: Run WOMBATpass
   run: |
-    pip install wafpass_core-*.whl     # or: pip install -e . from source
-    wafpass check infra/aws infra/azure infra/gcp \
+    pip install wombat_core-*.whl     # or: pip install -e . from source
+    wombat check infra/aws infra/azure infra/gcp \
       --iac terraform \
       --fail-on fail \
       --output pdf \
-      --pdf-out wafpass-report.pdf
+      --pdf-out wombat-report.pdf
 
 - name: Upload compliance report
   uses: actions/upload-artifact@v4
   with:
-    name: wafpass-report
-    path: wafpass-report.pdf
+    name: wombat-report
+    path: wombat-report.pdf
 ```
 
 **GitHub Actions — AWS CDK:**
@@ -1542,57 +1542,57 @@ Run state is saved to `.wafpass-state/` by default. Persist this directory betwe
 - name: Synthesise CDK app
   run: npx cdk synth          # produces cdk.out/
 
-- name: Run WAF++ PASS
+- name: Run WOMBATpass
   run: |
     pip install -e .
-    wafpass check . --iac cdk --fail-on fail --output pdf --pdf-out wafpass-report.pdf
+    wombat check . --iac cdk --fail-on fail --output pdf --pdf-out wombat-report.pdf
 
 - name: Upload compliance report
   uses: actions/upload-artifact@v4
   with:
-    name: wafpass-report
-    path: wafpass-report.pdf
+    name: wombat-report
+    path: wombat-report.pdf
 ```
 
 **GitHub Actions — with Grafana export:**
 
 ```yaml
-- name: Run WAF++ PASS + push metrics to Grafana
+- name: Run WOMBATpass + push metrics to Grafana
   env:
     GRAFANA_CLOUD_TOKEN: ${{ secrets.GRAFANA_CLOUD_TOKEN }}
   run: |
     pip install -e .
-    wafpass check ./infra/ \
+    wombat check ./infra/ \
       --fail-on fail \
       --export grafana \
       --output pdf \
-      --pdf-out wafpass-report.pdf
+      --pdf-out wombat-report.pdf
 ```
 
 **GitLab CI — Terraform with state persistence:**
 
 ```yaml
-wafpass:
+wombat:
   cache:
-    key: wafpass-state-$CI_COMMIT_REF_SLUG
+    key: wombat-state-$CI_COMMIT_REF_SLUG
     paths:
-      - .wafpass-state/
+      - .wombat-state/
   script:
     - pip install -e .
-    - wafpass check infra/aws infra/azure --fail-on fail --summary
+    - wombat check infra/aws infra/azure --fail-on fail --summary
   artifacts:
     paths:
-      - wafpass-report.pdf
+      - wombat-report.pdf
 ```
 
 **GitLab CI — CDK:**
 
 ```yaml
-wafpass-cdk:
+wombat-cdk:
   script:
     - npx cdk synth
     - pip install -e .
-    - wafpass check . --iac cdk --fail-on fail --summary
+    - wombat check . --iac cdk --fail-on fail --summary
 ```
 
 ## Releases & versioning
@@ -1638,24 +1638,24 @@ The patch counter resets to `0` automatically because no tags exist yet for the 
 
 ## Full stack (docker-compose)
 
-The WAF++ monorepo ships a `docker-compose.yml` at the repo root that starts the complete stack:
+The Wombat monorepo ships a `docker-compose.yml` at the repo root that starts the complete stack:
 
 ```bash
-# From the waf++ repo root
+# From the wombat repo root
 cp .env.example .env    # fill in POSTGRES_PASSWORD
 docker compose up
 ```
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| wafpass-dashboard | http://localhost:3000 | React dashboard (wafpass-dashboard/) |
-| wafpass-server | http://localhost:8000 | FastAPI results API (wafpass-server/) |
+| wombat-dashboard | http://localhost:3000 | React dashboard (wafpass-dashboard/) |
+| wombat-server | http://localhost:8000 | FastAPI results API (wafpass-server/) |
 | postgres | localhost:5432 | PostgreSQL results store |
 
-Post a result from `wafpass-core`:
+Post a result from `wombat-core`:
 
 ```bash
-wafpass check ./infra/ --output json \
+wombat check ./infra/ --output json \
   | python -c "
 import json,sys,httpx
 r=json.load(sys.stdin)
@@ -1667,7 +1667,7 @@ httpx.post('http://localhost:8000/api/v1/runs',json=r)
 To enable dashboard Local preview / auto-fix diffs, upload the source snapshot as well:
 
 ```bash
-wafpass check ./infra/ --output json --upload-source \
+wombat check ./infra/ --output json --upload-source \
   | python -c "
 import json,sys,httpx
 r=json.load(sys.stdin)
@@ -1678,37 +1678,37 @@ httpx.post('http://localhost:8000/api/v1/runs',json=r)
 
 ## Web UI (embedded, legacy)
 
-> **Note:** As of v0.3.0 the standalone `wafpass-dashboard` (Vite + React) is the recommended dashboard. The embedded web UI below remains available for local quick-start use without requiring Docker.
+> **Note:** As of v0.3.0 the standalone `wombat-dashboard` (Vite + React) is the recommended dashboard. The embedded web UI below remains available for local quick-start use without requiring Docker.
 
-WAF++ PASS ships with a browser-based dashboard that lets CISOs and security teams interact with controls, manage waivers, and view findings — **no YAML knowledge required**.
+WOMBATpass ships with a browser-based dashboard that lets CISOs and security teams interact with controls, manage waivers, and view findings — **no YAML knowledge required**.
 
 ### Starting the server
 
-The simplest way to manage the server is through the `wafpass ui` sub-command:
+The simplest way to manage the server is through the `wombat ui` sub-command:
 
 ```bash
 # Start in the background, open browser automatically
-wafpass ui start
+wombat ui start
 
 # Custom host / port
-wafpass ui start --host 0.0.0.0 --port 9090
+wombat ui start --host 0.0.0.0 --port 9090
 
 # Start without opening the browser
-wafpass ui start --no-browser
+wombat ui start --no-browser
 
 # Check whether the server is running
-wafpass ui status
+wombat ui status
 
 # Stop the server
-wafpass ui stop
+wombat ui stop
 ```
 
-The server PID is stored in `~/.wafpass/ui.pid` and log output in `~/.wafpass/ui.log`. The `start` command detects if a server is already running and refuses to start a second one.
+The server PID is stored in `~/.wombat/ui.pid` and log output in `~/.wombat/ui.log`. The `start` command detects if a server is already running and refuses to start a second one.
 
 For development, use `--reload` to enable uvicorn auto-reload:
 
 ```bash
-wafpass ui start --reload
+wombat ui start --reload
 ```
 
 You can also start the server directly with uvicorn if you prefer:
@@ -1720,13 +1720,13 @@ uvicorn serve.app:app --reload --port 8080
 
 ### Internal serve (production)
 
-A **FastAPI** web server that connects directly to the WAF++ PASS engine. Reads real controls from `controls/`, runs live scans, and persists waivers and risk acceptances to disk.
+A **FastAPI** web server that connects directly to the WOMBATpass engine. Reads real controls from `controls/`, runs live scans, and persists waivers and risk acceptances to disk.
 
 | Feature | Details |
 |---------|---------|
 | Executive Dashboard | Score gauge, pillar breakdown, severity chart, architectural debt heatmap, quick wins |
 | Controls Library | Browse/search all 70+ controls, filter by pillar/severity |
-| Waiver Manager | Add waivers with reason + expiry, export `.wafpass-skip.yml` |
+| Waiver Manager | Add waivers with reason + expiry, export `.wombat-skip.yml` |
 | Risk Acceptance | Full CRUD for formal risk acceptances with approver, RFC, Jira link, residual risk, expiry |
 | Findings | Per-check breakdown with remediation guidance, IDE deep-links |
 | Compliance Matrix | GDPR, ISO 27001:2022, BSI C5:2020, EUCS, CSRD mapping |
@@ -1771,10 +1771,10 @@ See [`../web-ui/README.md`](../web-ui/README.md) for more details.
 pytest
 
 # With coverage
-pytest --cov=wafpass --cov-report=term-missing
+pytest --cov=wombat --cov-report=term-missing
 ```
 
 ## Links
 
-- Framework documentation: [waf2p.dev](https://waf2p.dev)
-- WAF++ GitHub: [github.com/waf2p](https://github.com/waf2p)
+- Framework documentation: [www.wombat-gov.dev](https://www.wombat-gov.dev)
+- Wombat GitHub: [github.com/waf2p](https://github.com/waf2p)

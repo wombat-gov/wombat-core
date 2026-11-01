@@ -136,7 +136,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name:              ${{ steps.ver.outputs.tag }}
-          name:                  WAF++ PASS (wafpass-core) ${{ steps.ver.outputs.tag }}
+          name:                  WOMBATpass (wombat-core) ${{ steps.ver.outputs.tag }}
           generate_release_notes: true
           files: |
             dist/*.whl

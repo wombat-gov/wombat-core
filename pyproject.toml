@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "wafpass-core"
+name = "wombat-core"
 version = "1.1.4"
-description = "WAF++ PASS – IaC compliance engine, CLI, and result schema for the WAF++ framework"
+description = "WOMBATpass – IaC compliance engine, CLI, and result schema for the Wombat framework"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
@@ -16,7 +16,7 @@ authors = [
     { name = "Tim Urlaub" },
 ]
 keywords = [
-    "waf++", "iac", "terraform", "compliance", "security", "cloud",
+    "wombat", "iac", "terraform", "compliance", "security", "cloud",
     "devsecops", "static-analysis", "governance", "multi-cloud",
 ]
 classifiers = [
@@ -42,14 +42,16 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://waf2p.dev"
-Documentation = "https://waf2p.dev/docs/"
+Homepage = "https://www.wombat-gov.dev"
+Documentation = "https://www.wombat-gov.dev/docs/"
 Repository = "https://github.com/WAF2p/wafpass-core"
 "Bug Tracker" = "https://github.com/WAF2p/wafpass-core/issues"
 Community = "https://github.com/WAF2p"
 
 [project.scripts]
-wafpass = "wafpass.cli:app"
+wombat = "wombat.cli:app"
+# Deprecated alias kept for the WAFpass → WOMBATpass migration window.
+wafpass = "wombat.cli:legacy_app"
 
 [project.optional-dependencies]
 pdf = [
@@ -65,7 +67,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["wafpass"]
+packages = ["wombat", "wafpass"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,24 +1,24 @@
 version: "3.8"
 
-# WAF++ PASS — local observability stack
+# WOMBATpass — local observability stack
 #
 # Services:
-#   grafana      → http://localhost:3000   (admin / wafpass)
+#   grafana      → http://localhost:3000   (admin / wombat)
 #   prometheus   → http://localhost:9090
 #   pushgateway  → http://localhost:9091
 #
 # Usage:
 #   docker compose up -d
-#   wafpass check ./infra/ --export grafana   # push metrics
+#   wombat check ./infra/ --export grafana   # push metrics
 #   open http://localhost:3000                # view dashboard
 
 services:
 
   # ── Prometheus Pushgateway ──────────────────────────────────────────────────
-  # Receives metrics pushed by `wafpass check --export grafana`.
+  # Receives metrics pushed by `wombat check --export grafana`.
   pushgateway:
     image: prom/pushgateway:v1.9.0
-    container_name: wafpass-pushgateway
+    container_name: wombat-pushgateway
     restart: unless-stopped
     ports:
       - "9091:9091"
@@ -34,7 +34,7 @@ services:
   # Scrapes the Pushgateway every 15s and stores time-series data.
   prometheus:
     image: prom/prometheus:v2.52.0
-    container_name: wafpass-prometheus
+    container_name: wombat-prometheus
     restart: unless-stopped
     ports:
       - "9090:9090"
@@ -50,19 +50,19 @@ services:
       - pushgateway
 
   # ── Grafana ─────────────────────────────────────────────────────────────────
-  # Visualises the wafpass_* metric family.
+  # Visualises the wombat_* metric family.
   # Dashboard and Prometheus datasource are auto-provisioned on first start.
   grafana:
     image: grafana/grafana:11.1.0
-    container_name: wafpass-grafana
+    container_name: wombat-grafana
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       # Login credentials
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: wafpass
-      # Allow the HTML text panel to render the embedded WAF++ logo
+      GF_SECURITY_ADMIN_PASSWORD: wombat
+      # Allow the HTML text panel to render the embedded Wombat logo
       GF_PANELS_DISABLE_SANITIZE_HTML: "true"
       # Anonymous read access (remove for production)
       GF_AUTH_ANONYMOUS_ENABLED: "true"
@@ -71,7 +71,7 @@ services:
       - grafana-data:/var/lib/grafana
       - ./grafana-provisioning:/etc/grafana/provisioning:ro
       # Mount the dashboard JSON so Grafana auto-imports it
-      - ../assets/grafana-dashboard.json:/var/lib/grafana/dashboards/wafpass.json:ro
+      - ../assets/grafana-dashboard.json:/var/lib/grafana/dashboards/wombat.json:ro
     depends_on:
       - prometheus
 

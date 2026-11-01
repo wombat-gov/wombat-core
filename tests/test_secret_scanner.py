@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from wafpass.secret_scanner import scan_secrets
+from wombat.secret_scanner import scan_secrets
 
 
 def _write_and_scan(tmp_path: Path, content: str) -> list:

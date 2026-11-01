@@ -1,4 +1,4 @@
-# WAF++ PASS — pre-commit hook installer for Windows (PowerShell)
+# WOMBATpass — pre-commit hook installer for Windows (PowerShell)
 #
 # Usage (from repo root):
 #   .\hooks\install.ps1           # install (copy, since symlinks need elevation)
@@ -51,13 +51,13 @@ Write-Host ""
 Write-Host "IDE notes" -ForegroundColor White
 Write-Host "  VS Code        Git integration runs .git\hooks automatically — no extra setup." -ForegroundColor Cyan
 Write-Host "  IntelliJ/IDEA  Settings → Version Control → Git → 'Run Git hooks' must be enabled." -ForegroundColor Cyan
-Write-Host "                 If wafpass is not on PATH, add its install dir to the system PATH" -ForegroundColor Cyan
-Write-Host "                 or set WAFPASS_STRICT=0 to warn instead of block." -ForegroundColor Cyan
+Write-Host "                 If wombat is not on PATH, add its install dir to the system PATH" -ForegroundColor Cyan
+Write-Host "                 or set WOMBAT_STRICT=0 to warn instead of block." -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Configuration (set as environment variables or in .env)" -ForegroundColor White
-Write-Host "  WAFPASS_CONTROLS_DIR   path to controls dir   (default: controls)"
-Write-Host "  WAFPASS_SEVERITY       minimum severity        (default: high)"
-Write-Host "  WAFPASS_FAIL_ON        fail|skip|any           (default: fail)"
-Write-Host "  WAFPASS_STRICT         1 = abort if wafpass is missing (default: 0 = warn)"
+Write-Host "  WOMBAT_CONTROLS_DIR   path to controls dir   (default: controls)"
+Write-Host "  WOMBAT_SEVERITY       minimum severity        (default: high)"
+Write-Host "  WOMBAT_FAIL_ON        fail|skip|any           (default: fail)"
+Write-Host "  WOMBAT_STRICT         1 = abort if wombat is missing (default: 0 = warn)"
 Write-Host ""
 Write-Ok "Pre-commit hook installed. It will run on your next 'git commit'."

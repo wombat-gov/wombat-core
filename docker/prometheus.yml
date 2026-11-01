@@ -5,13 +5,13 @@ global:
 scrape_configs:
 
   # ── Prometheus Pushgateway ─────────────────────────────────────────────────
-  # WAF++ PASS pushes metrics here after every `wafpass check --export grafana`.
+  # WOMBATpass pushes metrics here after every `wombat check --export grafana`.
   #
   # honor_labels: true is critical — it preserves the job/instance labels that
-  # WAF++ wrote to the Pushgateway rather than overwriting them with Prometheus'
+  # Wombat wrote to the Pushgateway rather than overwriting them with Prometheus'
   # own scrape job label. Without this, label_values() queries in Grafana
   # variables (iac_plugin, source) will not populate correctly.
-  - job_name: wafpass
+  - job_name: wombat
     honor_labels: true
     static_configs:
       - targets:

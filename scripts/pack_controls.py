@@ -10,9 +10,9 @@ This creates:
         manifest.json          ← version metadata
         WAF-*.yml              ← copy of all active control files
 
-After packing, point WAFPASS_CONTROLS_DIR at the new release directory on the
+After packing, point WOMBAT_CONTROLS_DIR at the new release directory on the
 server and call POST /control-packs/sync with the same version string — or
-keep WAFPASS_CONTROLS_DIR pointing at the latest `controls/` directory and just
+keep WOMBAT_CONTROLS_DIR pointing at the latest `controls/` directory and just
 use the sync endpoint directly.
 """
 from __future__ import annotations
@@ -78,7 +78,7 @@ def main() -> None:
     print()
     print("Next steps:")
     print(f"  1. git add controls-releases/{version} && git commit -m 'chore: release control pack {version}'")
-    print(f"  2. On the server, set WAFPASS_CONTROLS_DIR to point at this release directory,")
+    print(f"  2. On the server, set WOMBAT_CONTROLS_DIR to point at this release directory,")
     print(f"     or copy the YAML files there.")
     print(f"  3. In the dashboard → Admin → Controls Upgrade, sync version '{version}'.")
 

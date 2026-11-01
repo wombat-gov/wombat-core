@@ -1,4 +1,4 @@
-"""Tests for wafpass.loader."""
+"""Tests for wombat.loader."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from wafpass.loader import load_controls
-from wafpass.models import Control
+from wombat.loader import load_controls
+from wombat.models import Control
 
 
 # ── Inline YAML fixtures ──────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-"""WAF++ PASS – internal web UI server.
+"""WOMBATpass – internal web UI server.
 
 Start with:
     cd pass/
@@ -26,10 +26,10 @@ from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Allow importing wafpass from the parent directory when run without install
+# Allow importing wombat from the parent directory when run without install
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from wafpass.validation_server import router as validation_router  # noqa: E402
+from wombat.validation_server import router as validation_router  # noqa: E402
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent
@@ -44,7 +44,7 @@ _last_report: Any = None
 
 # ── App ────────────────────────────────────────────────────────────────────
 app = FastAPI(
-    title="WAF++ PASS Web UI",
+    title="WOMBATpass Web UI",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url=None,
@@ -74,7 +74,7 @@ def _render_index(controls_json: str, waivers_json: str, results_json: str, risk
 def _controls_as_dicts() -> list[dict]:
     """Load all controls and return as JSON-serialisable list."""
     try:
-        from wafpass.loader import load_controls
+        from wombat.loader import load_controls
         controls = load_controls(CONTROLS_DIR)
     except Exception:
         return []
@@ -173,16 +173,16 @@ def _pillar_scores(results: list[dict]) -> dict[str, int]:
 
 
 def _policy_version() -> str:
-    """Return the wafpass package version, used as the policy/controls version."""
+    """Return the wombat package version, used as the policy/controls version."""
     try:
         from importlib.metadata import version
-        return version("wafpass")
+        return version("wombat")
     except Exception:
         return "0.2.0"
 
 
 def _report_to_dict(report: Any) -> dict:
-    from wafpass.models import Report
+    from wombat.models import Report
     results = []
     for cr in report.results:
         results.append({
@@ -366,7 +366,7 @@ async def api_export_waivers():
     return Response(
         content=content,
         media_type="text/yaml",
-        headers={"Content-Disposition": 'attachment; filename=".wafpass-skip.yml"'},
+        headers={"Content-Disposition": 'attachment; filename=".wombat-skip.yml"'},
     )
 
 
@@ -522,18 +522,18 @@ async def api_compliance_readiness():
 
 @app.post("/api/scan")
 async def api_run_scan(req: ScanRequest):
-    """Run an in-process WAF++ PASS scan and return results as JSON."""
+    """Run an in-process WOMBATpass scan and return results as JSON."""
     path = Path(req.path)
     if not path.exists():
         raise HTTPException(status_code=400, detail=f"Path not found: {req.path}")
 
     try:
-        from wafpass.engine import run_controls
-        from wafpass.iac import registry
-        from wafpass.iac.base import IaCState
-        from wafpass.loader import load_controls
-        from wafpass.models import Report
-        from wafpass.waivers import apply_waivers, load_waivers
+        from wombat.engine import run_controls
+        from wombat.iac import registry
+        from wombat.iac.base import IaCState
+        from wombat.loader import load_controls
+        from wombat.models import Report
+        from wombat.waivers import apply_waivers, load_waivers
 
         controls = load_controls(CONTROLS_DIR, pillar=req.pillar)
         if not controls:
@@ -592,8 +592,8 @@ async def api_auto_fix(req: AutoFixRequest):
         raise HTTPException(status_code=400, detail=f"Path not found: {req.path}")
 
     try:
-        from wafpass.engine import run_controls
-        from wafpass.fixer import (
+        from wombat.engine import run_controls
+        from wombat.fixer import (
             ResourceLocator,
             FixApplyResult,
             apply_fix_plan,
@@ -601,9 +601,9 @@ async def api_auto_fix(req: AutoFixRequest):
             compute_fix_delta,
             render_diff,
         )
-        from wafpass.iac import registry
-        from wafpass.loader import load_controls
-        from wafpass.waivers import apply_waivers, load_waivers
+        from wombat.iac import registry
+        from wombat.loader import load_controls
+        from wombat.waivers import apply_waivers, load_waivers
 
         controls = load_controls(CONTROLS_DIR, ids=req.control_ids)
         if not controls:
@@ -621,7 +621,7 @@ async def api_auto_fix(req: AutoFixRequest):
             waivers_data = load_waivers(WAIVERS_FILE)
         apply_waivers(results, waivers_data)
 
-        from wafpass.fixer import make_locator
+        from wombat.fixer import make_locator
 
         source_paths = [path] if path.is_file() else [
             f
@@ -708,8 +708,8 @@ async def api_auto_fix(req: AutoFixRequest):
 @app.post("/api/auto-fix/classify")
 async def api_auto_fix_classify(req: AutoFixClassifyRequest):
     """Classify stored findings as fixable or manual without filesystem access."""
-    from wafpass.fixer import FindingInput, classify_findings
-    from wafpass.loader import load_controls
+    from wombat.fixer import FindingInput, classify_findings
+    from wombat.loader import load_controls
 
     controls = load_controls(CONTROLS_DIR, ids=req.control_ids)
     if not controls:
@@ -769,8 +769,8 @@ async def api_auto_fix_classify(req: AutoFixClassifyRequest):
 @app.post("/api/auto-fix/rollback")
 async def api_auto_fix_rollback(req: AutoFixRollbackRequest):
     """Restore IaC source files from their .bak backups."""
-    from wafpass.fixer import restore_backup
-    from wafpass.iac import registry
+    from wombat.fixer import restore_backup
+    from wombat.iac import registry
 
     path = Path(req.path)
     if not path.exists():
@@ -817,11 +817,11 @@ async def api_sandbox_scan(req: SandboxRequest):
     if not req.content.strip():
         raise HTTPException(status_code=400, detail="Content cannot be empty.")
     try:
-        from wafpass.engine import run_controls
-        from wafpass.iac import registry
-        from wafpass.loader import load_controls
-        from wafpass.models import Report
-        from wafpass.waivers import apply_waivers, load_waivers
+        from wombat.engine import run_controls
+        from wombat.iac import registry
+        from wombat.loader import load_controls
+        from wombat.models import Report
+        from wombat.waivers import apply_waivers, load_waivers
 
         controls = load_controls(CONTROLS_DIR, pillar=req.pillar)
         if not controls:
@@ -872,11 +872,11 @@ async def api_export_pdf():
     if _last_report is None:
         raise HTTPException(status_code=400, detail="No scan results available. Run a scan first.")
     try:
-        from wafpass.pdf_reporter import generate_pdf
+        from wombat.pdf_reporter import generate_pdf
     except ImportError:
         raise HTTPException(
             status_code=501,
-            detail="PDF export requires reportlab. Install with: pip install wafpass[pdf]",
+            detail='PDF export requires reportlab. Install with: pip install "wombat-core[pdf]"',
         )
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
         tmp_path = Path(tmp.name)
@@ -891,7 +891,7 @@ async def api_export_pdf():
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": 'attachment; filename="wafpass-report.pdf"'},
+        headers={"Content-Disposition": 'attachment; filename="wombat-report.pdf"'},
     )
 
 

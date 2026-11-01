@@ -1,10 +1,10 @@
-# WAF++ PASS — Risk Acceptance Register
+# WOMBATpass — Risk Acceptance Register
 #
-# This file declares WAF++ controls for which the organisation has made a
+# This file declares Wombat controls for which the organisation has made a
 # conscious, documented decision to accept residual risk.
 #
 # Each entry MUST include:
-#   id      — the WAF++ control ID (e.g. WAF-SEC-020)
+#   id      — the Wombat control ID (e.g. WAF-SEC-020)
 #   reason  — mandatory written justification; reference a ticket or approval record
 #
 # Optional fields:
@@ -12,13 +12,13 @@
 #             Expired waivers trigger a CLI warning and are flagged in the PDF report.
 #
 # Placement:
-#   Drop this file in the directory you pass to `wafpass check`, or in the
-#   working directory where you run the command.  WAF++ PASS auto-discovers
-#   risk_acceptance.yml before falling back to .wafpass-skip.yml.
+#   Drop this file in the directory you pass to `wombat check`, or in the
+#   working directory where you run the command.  WOMBATpass auto-discovers
+#   risk_acceptance.yml before falling back to .wombat-skip.yml.
 #
 # Usage:
-#   wafpass check ./terraform               # auto-discovers this file
-#   wafpass check ./terraform --skip-file risk_acceptance.yml  # explicit path
+#   wombat check ./terraform               # auto-discovers this file
+#   wombat check ./terraform --skip-file risk_acceptance.yml  # explicit path
 #
 # The PDF report (--output pdf) includes a dedicated "Risk Acceptance Register"
 # page that renders all entries below, together with a sign-off block.

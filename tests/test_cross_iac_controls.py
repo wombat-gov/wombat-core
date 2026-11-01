@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from wafpass.engine import run_controls
-from wafpass.iac.plugins.cdk import CdkPlugin
-from wafpass.iac.plugins.pulumi import PulumiPlugin
-from wafpass.iac.plugins.terraform import TerraformPlugin
-from wafpass.loader import load_controls
+from wombat.engine import run_controls
+from wombat.iac.plugins.cdk import CdkPlugin
+from wombat.iac.plugins.pulumi import PulumiPlugin
+from wombat.iac.plugins.terraform import TerraformPlugin
+from wombat.loader import load_controls
 
 FIXTURES = Path(__file__).parent / "fixtures"
 CONTROLS_DIR = FIXTURES / "controls"

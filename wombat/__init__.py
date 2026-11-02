@@ -35,7 +35,7 @@ except PackageNotFoundError:
         # Deprecated: the package was published as wafpass-core before the rebrand.
         __version__ = _pkg_version("wafpass-core")
     except PackageNotFoundError:
-        __version__ = "1.1.2"
+        __version__ = "1.2.0"
 
 __name_full__ = "WOMBATpass"
 

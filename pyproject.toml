@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wombat-core"
-version = "1.1.4"
+version = "1.2.0"
 description = "WOMBATpass – IaC compliance engine, CLI, and result schema for the Wombat framework"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -44,9 +44,9 @@ dependencies = [
 [project.urls]
 Homepage = "https://www.wombat-gov.dev"
 Documentation = "https://www.wombat-gov.dev/docs/"
-Repository = "https://github.com/WAF2p/wafpass-core"
-"Bug Tracker" = "https://github.com/WAF2p/wafpass-core/issues"
-Community = "https://github.com/WAF2p"
+Repository = "https://github.com/wombat-gov/wombat-core"
+"Bug Tracker" = "https://github.com/wombat-gov/wombat-core/issues"
+Community = "https://github.com/wombat-gov"
 
 [project.scripts]
 wombat = "wombat.cli:app"
@@ -67,6 +67,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
+# Deprecated compatibility package; canonical import package is "wombat".
 packages = ["wombat", "wafpass"]
 
 [tool.pytest.ini_options]

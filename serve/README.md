@@ -52,6 +52,19 @@ The serve package is a **FastAPI** application that:
 
 No build step, no Node.js, no bundler — just Python and CDN-loaded JavaScript.
 
+## Filesystem access and scan base
+
+`/api/scan`, `/api/auto-fix` and `/api/auto-fix/rollback` accept a filesystem
+path from the browser.  Every path is resolved and confined to
+`WOMBAT_SCAN_BASE_DIR` (default: the process working directory).  Relative
+traversal, absolute paths outside the base and symlink escapes are rejected,
+and auto-fix rollback only restores `.bak` files inside the same root.
+
+```bash
+# Expose a workspace to the internal UI
+WOMBAT_SCAN_BASE_DIR=/path/to/your/iac uvicorn serve.app:app --port 8080
+```
+
 ## API Reference
 
 | Method | Path | Description |

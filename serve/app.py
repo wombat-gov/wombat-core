@@ -29,6 +29,7 @@ from pydantic import BaseModel
 # Allow importing wombat from the parent directory when run without install
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from serve.path_safety import PathSafetyError, resolve_scan_path
 from wombat.validation_server import router as validation_router  # noqa: E402
 
 # ── Paths ──────────────────────────────────────────────────────────────────
@@ -41,6 +42,14 @@ LAST_RESULTS_FILE = BASE_DIR / "last_results.json"
 
 # ── In-memory cache for the last Report object (needed for PDF export) ────────
 _last_report: Any = None
+
+def _resolve_request_path(raw: str) -> Path:
+    """Resolve a browser-supplied path and keep it inside the scan base."""
+    try:
+        return resolve_scan_path(raw)
+    except PathSafetyError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
 
 # ── App ────────────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -523,9 +532,7 @@ async def api_compliance_readiness():
 @app.post("/api/scan")
 async def api_run_scan(req: ScanRequest):
     """Run an in-process WOMBATpass scan and return results as JSON."""
-    path = Path(req.path)
-    if not path.exists():
-        raise HTTPException(status_code=400, detail=f"Path not found: {req.path}")
+    path = _resolve_request_path(req.path)
 
     try:
         from wombat.engine import run_controls
@@ -543,7 +550,7 @@ async def api_run_scan(req: ScanRequest):
         if plugin is None:
             raise HTTPException(status_code=422, detail=f"Unknown IaC plugin: {req.iac}")
 
-        state = plugin.parse(path)
+        state = plugin.parse(path)  # lgtm[py/path-injection] — confined by _resolve_request_path
         # Extract regions from the parsed IaC state
         detected_regions = plugin.extract_regions(state)
         results = run_controls(controls, state)
@@ -587,9 +594,7 @@ async def api_run_scan(req: ScanRequest):
 @app.post("/api/auto-fix")
 async def api_auto_fix(req: AutoFixRequest):
     """Build (and optionally apply) a fix plan for failing checks."""
-    path = Path(req.path)
-    if not path.exists():
-        raise HTTPException(status_code=400, detail=f"Path not found: {req.path}")
+    path = _resolve_request_path(req.path)
 
     try:
         from wombat.engine import run_controls
@@ -613,7 +618,7 @@ async def api_auto_fix(req: AutoFixRequest):
         if plugin is None:
             raise HTTPException(status_code=422, detail=f"Unknown IaC plugin: {req.iac}")
 
-        state = plugin.parse(path)
+        state = plugin.parse(path)  # lgtm[py/path-injection] — confined by _resolve_request_path
         results = run_controls(controls, state, engine_name=req.iac.lower())
 
         waivers_data = []
@@ -626,7 +631,7 @@ async def api_auto_fix(req: AutoFixRequest):
         source_paths = [path] if path.is_file() else [
             f
             for ext in plugin.file_extensions
-            for f in path.rglob(f"*{ext}")
+            for f in path.rglob(f"*{ext}")  # lgtm[py/path-injection] — confined by _resolve_request_path
         ]
         locator = make_locator(req.iac.lower(), source_paths).build()
 
@@ -772,9 +777,7 @@ async def api_auto_fix_rollback(req: AutoFixRollbackRequest):
     from wombat.fixer import restore_backup
     from wombat.iac import registry
 
-    path = Path(req.path)
-    if not path.exists():
-        raise HTTPException(status_code=400, detail=f"Path not found: {req.path}")
+    path = _resolve_request_path(req.path)
 
     plugin = registry.get(req.iac.lower())
     if plugin is None:
@@ -787,7 +790,7 @@ async def api_auto_fix_rollback(req: AutoFixRollbackRequest):
         files = sorted({
             f
             for ext in plugin.file_extensions
-            for f in path.rglob(f"*{ext}")
+            for f in path.rglob(f"*{ext}")  # lgtm[py/path-injection] — confined by _resolve_request_path
         })
 
     restored: list[str] = []
@@ -795,7 +798,8 @@ async def api_auto_fix_rollback(req: AutoFixRollbackRequest):
     for source_file in files:
         if source_file.suffix not in ext_set:
             continue
-        if restore_backup(source_file):
+        restore_root = path if path.is_dir() else path.parent
+        if restore_backup(source_file, root=restore_root):  # lgtm[py/path-injection] — confined by _resolve_request_path
             restored.append(str(source_file))
         else:
             missing.append(str(source_file))

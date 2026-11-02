@@ -2471,16 +2471,33 @@ def _write_atomic(
     return warnings
 
 
-def restore_backup(file_path: Path) -> bool:
+def _within_root(candidate: Path, root: Path) -> bool:
+    """True when *candidate* resolves to *root* or a path below it."""
+    try:
+        base = os.path.realpath(root)
+        resolved = os.path.realpath(candidate)
+    except OSError:
+        return False
+    return resolved == base or resolved.startswith(base + os.sep)
+
+
+def restore_backup(file_path: Path, root: Path | None = None) -> bool:
     """Restore ``file_path`` from its ``.bak`` backup if it exists.
 
-    Returns ``True`` if a backup was restored.
+    ``root`` is the directory the caller is allowed to touch.  When supplied,
+    both the source file and its sibling ``.bak`` must resolve inside it; this
+    keeps the public/internal web endpoints from turning rollback into an
+    arbitrary file-copy primitive.  Returns ``True`` if a backup was restored.
     """
+    if root is not None and not _within_root(file_path, root):
+        return False
     bak_path = file_path.with_suffix(file_path.suffix + ".bak")
+    if root is not None and not _within_root(bak_path, root):
+        return False
     if not bak_path.exists():
         return False
     try:
-        shutil.copy2(bak_path, file_path)
+        shutil.copy2(bak_path, file_path)  # lgtm[py/path-injection] — confined by root
         bak_path.unlink()
         return True
     except OSError:

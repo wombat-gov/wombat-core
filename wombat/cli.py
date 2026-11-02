@@ -1879,6 +1879,7 @@ def fix_rollback(
             typer.echo(f"ERROR: Path not found: {p}", err=True)
             raise typer.Exit(code=2)
 
+        restore_root = p if p.is_dir() else p.parent
         if p.is_file():
             files = [p]
         else:
@@ -1891,7 +1892,7 @@ def fix_rollback(
         for source_file in files:
             if source_file.suffix not in extensions:
                 continue
-            if restore_backup(source_file):
+            if restore_backup(source_file, root=restore_root):
                 restored += 1
                 typer.echo(f"Restored {source_file} from backup")
             else:

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# WAF++ PASS — pre-commit hook installer
+# WOMBATpass — pre-commit hook installer
 # Works on macOS, Linux, and Git Bash on Windows.
 #
 # Usage:
@@ -72,13 +72,13 @@ echo "  ${CYAN}VS Code${RESET}        Git integration runs .git/hooks automatica
 echo "  ${CYAN}IntelliJ/IDEA${RESET}  Settings → Version Control → Git → 'Run Git hooks' must be enabled (it is by default)."
 echo "                 If hooks are skipped, go to Settings → Tools → Terminal and set 'Shell path' to your login shell."
 echo ""
-echo "  ${CYAN}PATH issues${RESET}    If wafpass is not found in IDE commits, set WAFPASS_STRICT=0 in .env"
+echo "  ${CYAN}PATH issues${RESET}    If wombat is not found in IDE commits, set WOMBAT_STRICT=0 in .env"
 echo "                 or add the install prefix to Settings → Build → Python Interpreter."
 echo ""
 echo "${BOLD}Configuration (optional .env or shell exports)${RESET}"
-echo "  WAFPASS_CONTROLS_DIR   path to controls dir   (default: controls)"
-echo "  WAFPASS_SEVERITY       minimum severity        (default: high)"
-echo "  WAFPASS_FAIL_ON        fail|skip|any           (default: fail)"
-echo "  WAFPASS_STRICT         1 = abort if wafpass is missing (default: 0 = warn only)"
+echo "  WOMBAT_CONTROLS_DIR   path to controls dir   (default: controls)"
+echo "  WOMBAT_SEVERITY       minimum severity        (default: high)"
+echo "  WOMBAT_FAIL_ON        fail|skip|any           (default: fail)"
+echo "  WOMBAT_STRICT         1 = abort if wombat is missing (default: 0 = warn only)"
 echo ""
 ok "Pre-commit hook installed. It will run on your next \`git commit\`."

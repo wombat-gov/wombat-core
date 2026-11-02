@@ -3,7 +3,7 @@
     {
       "name": "DS_PROMETHEUS",
       "label": "Prometheus",
-      "description": "Prometheus datasource scraping the WAF++ Pushgateway.",
+      "description": "Prometheus datasource scraping the Wombat Pushgateway.",
       "type": "datasource",
       "pluginId": "prometheus",
       "pluginName": "Prometheus"
@@ -76,7 +76,7 @@
       }
     ]
   },
-  "description": "WAF++ PASS compliance monitoring \u2014 risk scores, control status, and run-to-run change tracking.",
+  "description": "WOMBATpass compliance monitoring \u2014 risk scores, control status, and run-to-run change tracking.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -85,10 +85,10 @@
     {
       "icon": "external link",
       "tags": [],
-      "title": "WAF++ Framework",
-      "tooltip": "waf2p.dev",
+      "title": "Wombat Framework",
+      "tooltip": "www.wombat-gov.dev",
       "type": "link",
-      "url": "https://waf2p.dev",
+      "url": "https://www.wombat-gov.dev",
       "targetBlank": true
     }
   ],
@@ -120,7 +120,7 @@
       },
       "options": {
         "mode": "html",
-        "content": "<div style=\"display:flex;flex-direction:column;justify-content:center;height:100%;padding:8px\"><div style=\"font-size:20px;font-weight:700;color:#2b7fff;margin-bottom:4px\">WAF++ PASS \u2014 Compliance Monitor</div><div style=\"font-size:12px;color:#64748b\">IaC security &amp; compliance posture \u00b7 powered by <a href=\"https://waf2p.dev\" style=\"color:#2b7fff\">waf2p.dev</a> \u00b7 data via Prometheus Pushgateway</div></div>"
+        "content": "<div style=\"display:flex;flex-direction:column;justify-content:center;height:100%;padding:8px\"><div style=\"font-size:20px;font-weight:700;color:#2b7fff;margin-bottom:4px\">WOMBATpass \u2014 Compliance Monitor</div><div style=\"font-size:12px;color:#64748b\">IaC security &amp; compliance posture \u00b7 powered by <a href=\"https://www.wombat-gov.dev\" style=\"color:#2b7fff\">www.wombat-gov.dev</a> \u00b7 data via Prometheus Pushgateway</div></div>"
       }
     },
     {
@@ -202,7 +202,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_score{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_score{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -264,7 +264,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"pass\"})",
+          "expr": "max by(iac_plugin, source)(wombat_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"pass\"})",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -330,7 +330,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"fail\"})",
+          "expr": "max by(iac_plugin, source)(wombat_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"fail\"})",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -396,7 +396,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"skip\"})",
+          "expr": "max by(iac_plugin, source)(wombat_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"skip\"})",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -458,7 +458,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"waived\"})",
+          "expr": "max by(iac_plugin, source)(wombat_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"waived\"})",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -520,7 +520,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum by(iac_plugin, source)(max by(iac_plugin, source, status)(wafpass_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"}))",
+          "expr": "sum by(iac_plugin, source)(max by(iac_plugin, source, status)(wombat_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"}))",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -589,7 +589,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_score_delta{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_score_delta{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -658,7 +658,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_regressions_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_regressions_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -723,7 +723,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_improvements_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_improvements_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -784,7 +784,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max(wafpass_run_timestamp_seconds{iac_plugin=~\"$iac_plugin\", source=~\"$source\"}) * 1000",
+          "expr": "max(wombat_run_timestamp_seconds{iac_plugin=~\"$iac_plugin\", source=~\"$source\"}) * 1000",
           "legendFormat": "",
           "instant": true,
           "refId": "A"
@@ -867,7 +867,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_score{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_score{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "Risk Score",
           "instant": false,
           "refId": "A"
@@ -982,7 +982,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"pass\"})",
+          "expr": "max by(iac_plugin, source)(wombat_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"pass\"})",
           "legendFormat": "PASS",
           "instant": false,
           "refId": "A"
@@ -992,7 +992,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"fail\"})",
+          "expr": "max by(iac_plugin, source)(wombat_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"fail\"})",
           "legendFormat": "FAIL",
           "instant": false,
           "refId": "B"
@@ -1002,7 +1002,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"skip\"})",
+          "expr": "max by(iac_plugin, source)(wombat_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"skip\"})",
           "legendFormat": "SKIP",
           "instant": false,
           "refId": "C"
@@ -1012,7 +1012,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"waived\"})",
+          "expr": "max by(iac_plugin, source)(wombat_controls_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"waived\"})",
           "legendFormat": "WAIVED",
           "instant": false,
           "refId": "D"
@@ -1100,7 +1100,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source, pillar)(wafpass_pillar_score{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source, pillar)(wombat_pillar_score{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "{{pillar}}",
           "instant": true,
           "refId": "A"
@@ -1204,7 +1204,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_score_delta{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_score_delta{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "Score Delta",
           "instant": false,
           "refId": "A"
@@ -1289,7 +1289,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_regressions_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_regressions_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "Regressions (new FAILs)",
           "instant": false,
           "refId": "A"
@@ -1299,7 +1299,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_improvements_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_improvements_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "Improvements (left FAIL)",
           "instant": false,
           "refId": "B"
@@ -1536,7 +1536,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source, control_id, severity, pillar)(wafpass_control_status{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source, control_id, severity, pillar)(wombat_control_status{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "{{control_id}}",
           "instant": true,
           "refId": "A",
@@ -1678,7 +1678,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_checks_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"pass\"})",
+          "expr": "max by(iac_plugin, source)(wombat_checks_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"pass\"})",
           "legendFormat": "Checks PASS",
           "instant": false,
           "refId": "A"
@@ -1688,7 +1688,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_checks_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"fail\"})",
+          "expr": "max by(iac_plugin, source)(wombat_checks_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"fail\"})",
           "legendFormat": "Checks FAIL",
           "instant": false,
           "refId": "B"
@@ -1698,7 +1698,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_checks_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"skip\"})",
+          "expr": "max by(iac_plugin, source)(wombat_checks_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\", status=\"skip\"})",
           "legendFormat": "Checks SKIP",
           "instant": false,
           "refId": "C"
@@ -1722,7 +1722,7 @@
       "id": 27,
       "type": "table",
       "title": "Score History per Run",
-      "description": "Historical WAF++ scores.  Each row is one Prometheus scrape that captured a change.  Use the time range selector to zoom in or out.",
+      "description": "Historical Wombat scores.  Each row is one Prometheus scrape that captured a change.  Use the time range selector to zoom in or out.",
       "gridPos": {
         "x": 0,
         "y": 62,
@@ -1739,7 +1739,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_score{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_score{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "score",
           "instant": false,
           "refId": "A",
@@ -1750,7 +1750,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_regressions_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_regressions_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "regressions",
           "instant": false,
           "refId": "B",
@@ -1761,7 +1761,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source)(wafpass_improvements_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source)(wombat_improvements_total{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "improvements",
           "instant": false,
           "refId": "C",
@@ -1772,7 +1772,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by(iac_plugin, source, run_id)(wafpass_run_timestamp_seconds{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
+          "expr": "max by(iac_plugin, source, run_id)(wombat_run_timestamp_seconds{iac_plugin=~\"$iac_plugin\", source=~\"$source\"})",
           "legendFormat": "run_id",
           "instant": false,
           "refId": "D",
@@ -1944,11 +1944,11 @@
   "refresh": "1m",
   "schemaVersion": 38,
   "tags": [
-    "wafpass",
+    "wombat",
     "compliance",
     "iac",
     "security",
-    "waf++"
+    "wombat"
   ],
   "templating": {
     "list": [
@@ -1970,7 +1970,7 @@
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(wafpass_score, iac_plugin)",
+        "definition": "label_values(wombat_score, iac_plugin)",
         "hide": 0,
         "includeAll": true,
         "multi": true,
@@ -1983,7 +1983,7 @@
         "name": "iac_plugin",
         "label": "IaC Plugin",
         "query": {
-          "query": "label_values(wafpass_score, iac_plugin)",
+          "query": "label_values(wombat_score, iac_plugin)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -1996,7 +1996,7 @@
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(wafpass_score, source)",
+        "definition": "label_values(wombat_score, source)",
         "hide": 0,
         "includeAll": true,
         "multi": true,
@@ -2009,7 +2009,7 @@
         "name": "source",
         "label": "Source Path",
         "query": {
-          "query": "label_values(wafpass_score, source)",
+          "query": "label_values(wombat_score, source)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -2025,7 +2025,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "WAF++ PASS \u2014 Compliance Monitor",
+  "title": "WOMBATpass \u2014 Compliance Monitor",
   "uid": "wafpp-pass-v1",
   "version": 1,
   "weekStart": ""

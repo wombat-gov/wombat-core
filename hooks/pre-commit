@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# WAF++ PASS — pre-commit hook
-# Runs wafpass compliance checks on staged IaC files before every commit.
+# WOMBATpass — pre-commit hook
+# Runs wombat compliance checks on staged IaC files before every commit.
 #
 # Configuration (set in shell or .env):
-#   WAFPASS_CONTROLS_DIR   Path to controls directory  (default: controls)
-#   WAFPASS_SEVERITY       Minimum severity to enforce (default: high)
-#   WAFPASS_FAIL_ON        When to fail: fail|skip|any (default: fail)
-#   WAFPASS_STRICT         Exit 1 if wafpass is not installed (default: 0)
+#   WOMBAT_CONTROLS_DIR   Path to controls directory  (default: controls)
+#   WOMBAT_SEVERITY       Minimum severity to enforce (default: high)
+#   WOMBAT_FAIL_ON        When to fail: fail|skip|any (default: fail)
+#   WOMBAT_STRICT         Exit 1 if wombat is not installed (default: 0)
 #
 # To skip this hook for a single commit:  git commit --no-verify
 
@@ -20,14 +20,14 @@ else
     RED=""; YELLOW=""; GREEN=""; CYAN=""; BOLD=""; RESET=""
 fi
 
-log()  { echo "${CYAN}[wafpass]${RESET} $*"; }
-ok()   { echo "${GREEN}[wafpass]${RESET} $*"; }
-warn() { echo "${YELLOW}[wafpass]${RESET} $*"; }
-fail() { echo "${RED}${BOLD}[wafpass]${RESET} $*"; }
+log()  { echo "${CYAN}[wombat]${RESET} $*"; }
+ok()   { echo "${GREEN}[wombat]${RESET} $*"; }
+warn() { echo "${YELLOW}[wombat]${RESET} $*"; }
+fail() { echo "${RED}${BOLD}[wombat]${RESET} $*"; }
 
 # ── PATH augmentation for IDE environments ────────────────────────────────────
 # VS Code and IntelliJ launch git with a restricted PATH. This block adds the
-# most common locations where wafpass (a pip-installed tool) might live.
+# most common locations where wombat (a pip-installed tool) might live.
 _augment_path() {
     local extras=(
         "$HOME/.local/bin"           # pip install --user
@@ -61,20 +61,20 @@ _augment_path() {
 _augment_path
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-CONTROLS_DIR="${WAFPASS_CONTROLS_DIR:-controls}"
-SEVERITY="${WAFPASS_SEVERITY:-high}"
-FAIL_ON="${WAFPASS_FAIL_ON:-fail}"
-STRICT="${WAFPASS_STRICT:-0}"
+CONTROLS_DIR="${WOMBAT_CONTROLS_DIR:-controls}"
+SEVERITY="${WOMBAT_SEVERITY:-high}"
+FAIL_ON="${WOMBAT_FAIL_ON:-fail}"
+STRICT="${WOMBAT_STRICT:-0}"
 
-# ── Verify wafpass is available ───────────────────────────────────────────────
-if ! command -v wafpass &>/dev/null; then
+# ── Verify wombat is available ───────────────────────────────────────────────
+if ! command -v wombat &>/dev/null; then
     if [[ "$STRICT" == "1" ]]; then
-        fail "wafpass not found. Install with: pip install wafpass-core"
-        fail "Or set WAFPASS_STRICT=0 to skip the check when wafpass is absent."
+        fail "wombat not found. Install with: pip install wombat-core"
+        fail "Or set WOMBAT_STRICT=0 to skip the check when wombat is absent."
         exit 1
     else
-        warn "wafpass not found — skipping compliance check."
-        warn "Install with: pip install wafpass-core"
+        warn "wombat not found — skipping compliance check."
+        warn "Install with: pip install wombat-core"
         exit 0
     fi
 fi
@@ -125,7 +125,7 @@ fi
 # ── Check controls directory ──────────────────────────────────────────────────
 if [[ ! -d "$CONTROLS_DIR" ]]; then
     warn "Controls directory '$CONTROLS_DIR' not found — skipping IaC checks."
-    warn "Set WAFPASS_CONTROLS_DIR to point at your controls directory."
+    warn "Set WOMBAT_CONTROLS_DIR to point at your controls directory."
     exit 0
 fi
 
@@ -141,7 +141,7 @@ HOOK_FAILED=0
 _run_check() {
     local iac_type="$1"
     log "Checking ${iac_type} files (severity >= ${SEVERITY})…"
-    if wafpass check \
+    if wombat check \
             --iac "$iac_type" \
             --controls-dir "$CONTROLS_DIR" \
             --severity "$SEVERITY" \
@@ -163,7 +163,7 @@ _run_check() {
 if [[ ${#STAGED_CONTROLS[@]} -gt 0 ]]; then
     log "Validating ${#STAGED_CONTROLS[@]} staged control file(s)…"
     for control_file in "${STAGED_CONTROLS[@]}"; do
-        if wafpass control validate "$control_file" 2>&1; then
+        if wombat control validate "$control_file" 2>&1; then
             ok "  $control_file — valid"
         else
             fail "  $control_file — schema validation FAILED"

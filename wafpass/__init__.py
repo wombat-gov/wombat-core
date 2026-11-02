@@ -1,91 +1,64 @@
-"""WAF++ PASS core library — public API.
+"""Deprecated compatibility package — import :mod:`wombat` instead.
 
-Quick start
------------
-::
-
-    from wafpass import run_scan, WafpassResultSchema
-
-    result: WafpassResultSchema = run_scan(
-        paths=["infra/"],
-        controls_dir="controls/",
-    )
-    print(result.score)
-
-Public symbols
---------------
-* :func:`run_scan`             — run a compliance scan, return a result schema object
-* :class:`WafpassResultSchema` — Pydantic model for the wafpass-result.json contract
-* :class:`FindingSchema`       — Pydantic model for a single finding within a result
-* :class:`Report`              — internal dataclass report (pre-schema, for CLI/PDF use)
-* ``IaCPlugin``, ``IaCBlock``, ``IaCState`` — protocol types for IaC adapters
+``wafpass`` was the package name before the WAF++ → Wombat rebrand.  It is
+kept as a thin alias so existing integrations keep working for one migration
+window; every import emits a :class:`DeprecationWarning`.
 """
 
-from importlib.metadata import PackageNotFoundError, version as _pkg_version
+from __future__ import annotations
 
-try:
-    __version__ = _pkg_version("wafpass-core")
-except PackageNotFoundError:
-    __version__ = "1.1.2"
+import importlib
+import importlib.abc
+import importlib.util
+import sys
+import warnings
 
-__name_full__ = "WAF++ PASS"
-
-# ── Result schema (public contract) ───────────────────────────────────────────
-from wafpass.schema import (  # noqa: E402
-    FindingSchema,
-    LocalAttestationSchema,
-    ServerValidationSchema,
-    ValidationEnvelopeSchema,
-    WafpassResultSchema,
+warnings.warn(
+    "The 'wafpass' package is deprecated after the WAF++ → Wombat rebrand; "
+    "import 'wombat' instead.",
+    DeprecationWarning,
+    stacklevel=2,
 )
 
-# ── Internal report model (used by CLI, PDF reporter, etc.) ───────────────────
-from wafpass.models import Report  # noqa: E402
+from wombat import (  # noqa: E402,F401
+    IaCBlock,
+    IaCPlugin,
+    IaCState,
+    FindingSchema,
+    LocalAttestationSchema,
+    Report,
+    ServerValidationSchema,
+    ValidationEnvelopeSchema,
+    WombatResultSchema,
+    __name_full__,
+    __version__,
+    run_scan,
+)
 
-# ── IaC adapter protocol types ────────────────────────────────────────────────
-from wafpass.iac.base import IaCBlock, IaCPlugin, IaCState  # noqa: E402
-
-
-from pathlib import Path
-from typing import List, Optional
-
-
-def run_scan(
-    paths: List[str],
-    controls_dir: str = "controls/",
-    *,
-    severity_filter: Optional[str] = None,
-    waivers_file: Optional[str] = None,
-) -> "WafpassResultSchema":
-    """Run a WAF++ PASS compliance scan and return a structured result.
-
-    This is the convenience public API wrapper around
-    :func:`wafpass.runner.run_scan`. For full control (project, branch, secret
-    scanning, source snapshots, etc.) use :class:`wafpass.runner.ScanConfig`
-    directly.
-    """
-    from wafpass.runner import ScanConfig, run_scan as _run_scan
-
-    _, schema = _run_scan(ScanConfig(
-        paths=[Path(p) for p in paths],
-        controls_dir=Path(controls_dir),
-        severity=severity_filter,
-        waivers_file=Path(waivers_file) if waivers_file else None,
-    ))
-    return schema
+# Deprecated WAFpass-era name.
+WafpassResultSchema = WombatResultSchema
 
 
-__all__ = [
-    "__version__",
-    "__name_full__",
-    "run_scan",
-    "WafpassResultSchema",
-    "FindingSchema",
-    "LocalAttestationSchema",
-    "ServerValidationSchema",
-    "ValidationEnvelopeSchema",
-    "Report",
-    "IaCPlugin",
-    "IaCBlock",
-    "IaCState",
-]
+class _WombatAliasLoader(importlib.abc.Loader):
+    """Load ``wafpass.<name>`` by copying the ``wombat.<name>`` module."""
+
+    def create_module(self, spec):  # noqa: ANN001 - importlib protocol
+        return None
+
+    def exec_module(self, module) -> None:  # noqa: ANN001 - importlib protocol
+        target_name = "wombat" + module.__name__[len("wafpass"):]
+        target = importlib.import_module(target_name)
+        module.__dict__.update(target.__dict__)
+        module.__doc__ = target.__doc__
+
+
+class _WombatAliasFinder(importlib.abc.MetaPathFinder):
+    """Redirect every ``wafpass.*`` submodule import to ``wombat.*``."""
+
+    def find_spec(self, fullname, path=None, target=None):  # noqa: ANN001
+        if fullname.startswith("wafpass."):
+            return importlib.util.spec_from_loader(fullname, _WombatAliasLoader())
+        return None
+
+
+sys.meta_path.insert(0, _WombatAliasFinder())

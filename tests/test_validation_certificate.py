@@ -1,4 +1,4 @@
-"""Tests for the WAF++ validation certificate PDF renderer."""
+"""Tests for the Wombat validation certificate PDF renderer."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from wafpass.attestation import (
+from wombat.attestation import (
     build_server_validation,
     create_official_envelope,
     create_offline_envelope,
@@ -16,11 +16,11 @@ from wafpass.attestation import (
     load_signing_key,
     sign_run,
 )
-from wafpass.schema import WafpassResultSchema
+from wombat.schema import WombatResultSchema
 
 _PDF_SKIP_REASON = "reportlab not installed"
 try:
-    from wafpass.pdf_reporter import generate_validation_certificate
+    from wombat.pdf_reporter import generate_validation_certificate
 except ImportError as _pdf_import_err:  # pragma: no cover
     generate_validation_certificate = None  # type: ignore[misc,assignment]
     _PDF_SKIP_REASON = f"reportlab not installed: {_pdf_import_err}"
@@ -34,8 +34,8 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.fixture
 def sample_result():
-    """A minimal WafpassResultSchema for certificate tests."""
-    return WafpassResultSchema(
+    """A minimal WombatResultSchema for certificate tests."""
+    return WombatResultSchema(
         schema_version="1.0",
         project="acme-infra",
         branch="main",
@@ -69,7 +69,7 @@ def org_key_path(tmp_path: Path):
 def server_keys(tmp_path: Path):
     """Root + server key pair and certificates for testing."""
     root_key, root_cert = generate_root_certificate(
-        subject_name="WAF++ Test Root CA",
+        subject_name="Wombat Test Root CA",
         validity_days=365,
     )
     server_key_path = tmp_path / "server.key"
@@ -79,14 +79,14 @@ def server_keys(tmp_path: Path):
         server_private_key=server_key,
         root_private_key=root_key,
         root_cert_pem=root_cert,
-        subject_name="WAF++ Test Validation Server",
+        subject_name="Wombat Test Validation Server",
         validity_days=180,
     )
     return root_key, root_cert, server_key, server_cert
 
 
 @pytest.fixture
-def official_envelope(sample_result: WafpassResultSchema, org_key_path: Path, server_keys: tuple):
+def official_envelope(sample_result: WombatResultSchema, org_key_path: Path, server_keys: tuple):
     """An official validation envelope with a full certificate chain."""
     _root_key, root_cert, server_key, server_cert = server_keys
     attestation = sign_run(sample_result, org_key_path)
@@ -102,7 +102,7 @@ def official_envelope(sample_result: WafpassResultSchema, org_key_path: Path, se
 
 
 @pytest.fixture
-def offline_envelope(sample_result: WafpassResultSchema, org_key_path: Path):
+def offline_envelope(sample_result: WombatResultSchema, org_key_path: Path):
     """An offline (self-signed) validation envelope."""
     return create_offline_envelope(sample_result, org_key_path)
 

@@ -1,4 +1,4 @@
-"""End-to-end tests for the WAF++ validation server endpoints."""
+"""End-to-end tests for the Wombat validation server endpoints."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from wafpass.attestation import (
+from wombat.attestation import (
     compute_run_hash,
     generate_signing_key,
     load_signing_key,
@@ -16,14 +16,14 @@ from wafpass.attestation import (
     verify_envelope,
     verify_server_signature,
 )
-from wafpass.schema import (
+from wombat.schema import (
     ServerValidationSchema,
     ValidationEnvelopeSchema,
-    WafpassResultSchema,
+    WombatResultSchema,
 )
 
 # Import and reset the in-memory validation store before each test.
-from wafpass import validation_server
+from wombat import validation_server
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def client(tmp_path: Path, monkeypatch):
     validation_server._root_cert_pem = None
     validation_server._server_key = None
     validation_server._server_cert_pem = None
-    monkeypatch.setenv("WAFPASS_SERVER_KEYS_DIR", str(tmp_path / "server-keys"))
+    monkeypatch.setenv("WOMBAT_SERVER_KEYS_DIR", str(tmp_path / "server-keys"))
     from serve.app import app
 
     with TestClient(app) as c:
@@ -49,8 +49,8 @@ def key_path(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def sample_result() -> WafpassResultSchema:
-    return WafpassResultSchema(
+def sample_result() -> WombatResultSchema:
+    return WombatResultSchema(
         project="demo",
         branch="main",
         git_sha="abc1234",
@@ -59,7 +59,7 @@ def sample_result() -> WafpassResultSchema:
     )
 
 
-def _post_validation(client: TestClient, result: WafpassResultSchema, key_path: Path):
+def _post_validation(client: TestClient, result: WombatResultSchema, key_path: Path):
     attestation = sign_run(result, key_path)
     payload = {
         "result": result.model_dump(),
@@ -123,7 +123,7 @@ def test_badge_svg_endpoint(client, key_path, sample_result):
     badge = client.get(sv.badge_url)
     assert badge.status_code == 200
     assert badge.headers["content-type"].startswith("image/svg+xml")
-    assert "WAF++ Validated" in badge.text
+    assert "Wombat Validated" in badge.text
 
 
 def test_badge_json_endpoint(client, key_path, sample_result):

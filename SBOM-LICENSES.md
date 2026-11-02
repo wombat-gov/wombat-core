@@ -1,11 +1,11 @@
 # Software Bill of Materials and License Overview
 
-This document summarizes the software components used by **wafpass-core**
+This document summarizes the software components used by **wombat-core**
 and their licenses. It is generated for CNCF submission readiness.
 
 ## Project metadata
 
-- **Project:** wafpass-core
+- **Project:** wombat-core
 - **Own license:** Apache-2.0
 - **License file present:** yes
 

@@ -1,1 +1,1 @@
-"""WAF++ PASS – internal web UI server package."""
+"""WOMBATpass – internal web UI server package."""

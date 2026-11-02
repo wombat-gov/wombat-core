@@ -7,8 +7,8 @@ It checks IaC (Infrastructure-as-Code) files against YAML control definitions an
 | Component | Package | Description |
 |-----------|---------|-------------|
 | **`pass/`** | `wombat-core` | Engine, CLI, IaC adapters, result schema ← **this module** |
-| **`wafpass-server/`** | `wombat-server` | FastAPI + PostgreSQL API for persisting scan results |
-| **`wafpass-dashboard/`** | — (React) | Standalone dashboard consuming the server API |
+| **`wombat-server/`** | `wombat-server` | FastAPI + PostgreSQL API for persisting scan results |
+| **`wombat-dashboard/`** | — (React) | Standalone dashboard consuming the server API |
 
 Supported IaC frameworks are loaded as **plugins** — Terraform, AWS CDK (TypeScript), and Pulumi (Python) are fully implemented; Bicep is available as a stub ready for contribution.
 
@@ -18,7 +18,7 @@ Supported IaC frameworks are loaded as **plugins** — Terraform, AWS CDK (TypeS
 
 ### Option A — GitHub release artifact (recommended for users)
 
-Download the latest `.whl` from the [GitHub Releases page](https://github.com/WAF2p/wafpass-core/releases) and install it:
+Download the latest `.whl` from the [GitHub Releases page](https://github.com/wombat-gov/wombat-core/releases) and install it:
 
 ```bash
 pip install wombat_core-*.whl
@@ -29,7 +29,7 @@ uv pip install wombat_core-*.whl
 ### Option B — From source
 
 ```bash
-git clone https://github.com/WAF2p/wafpass-core.git
+git clone https://github.com/wombat-gov/wombat-core.git
 cd pass
 
 # Using uv (recommended)
@@ -49,7 +49,7 @@ pip install -e ".[dev]"
 
 ```bash
 brew install git python uv
-git clone https://github.com/WAF2p/wafpass-core.git
+git clone https://github.com/wombat-gov/wombat-core.git
 cd pass
 uv pip install -e .
 
@@ -227,7 +227,7 @@ cp /path/to/download/*.yml controls/
 **Option B — Clone the framework repository:**
 
 ```bash
-git clone https://github.com/WAF2p/framework.git
+git clone https://github.com/wombat-gov/framework.git
 cp framework/modules/controls/controls/*.yml controls/
 ```
 
@@ -1648,8 +1648,8 @@ docker compose up
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| wombat-dashboard | http://localhost:3000 | React dashboard (wafpass-dashboard/) |
-| wombat-server | http://localhost:8000 | FastAPI results API (wafpass-server/) |
+| wombat-dashboard | http://localhost:3000 | React dashboard (wombat-dashboard/) |
+| wombat-server | http://localhost:8000 | FastAPI results API (wombat-server/) |
 | postgres | localhost:5432 | PostgreSQL results store |
 
 Post a result from `wombat-core`:
@@ -1777,4 +1777,4 @@ pytest --cov=wombat --cov-report=term-missing
 ## Links
 
 - Framework documentation: [www.wombat-gov.dev](https://www.wombat-gov.dev)
-- Wombat GitHub: [github.com/waf2p](https://github.com/waf2p)
+- Wombat GitHub: [github.com/wombat-gov](https://github.com/wombat-gov)

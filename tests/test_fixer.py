@@ -1,4 +1,4 @@
-"""Tests for the WAF++ auto-fix engine."""
+"""Tests for the Wombat auto-fix engine."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from wafpass.engine import run_controls
-from wafpass.fixer import (
+from wombat.engine import run_controls
+from wombat.fixer import (
     BLOCK_DEFAULTS,
     FixApplyResult,
     FixDelta,
@@ -38,10 +38,10 @@ from wafpass.fixer import (
     render_diff,
     restore_backup,
 )
-from wafpass.iac.base import IaCBlock, IaCState
-from wafpass.iac.plugins.terraform import TerraformPlugin
-from wafpass.loader import load_controls
-from wafpass.models import Assertion, Check, Control, Scope
+from wombat.iac.base import IaCBlock, IaCState
+from wombat.iac.plugins.terraform import TerraformPlugin
+from wombat.loader import load_controls
+from wombat.models import Assertion, Check, Control, Scope
 
 FIXTURES_DIR = Path(__file__).with_name("fixtures")
 NON_COMPLIANT_FIXTURE = FIXTURES_DIR / "fix_non_compliant" / "main.tf"
@@ -118,7 +118,7 @@ def test_render_hcl_pairs_includes_newlines() -> None:
 
 
 def test_render_flat_template() -> None:
-    from wafpass.fixer import BlockTemplate
+    from wombat.fixer import BlockTemplate
 
     template = BlockTemplate({"enabled": True, "name": "test"})
     rendered = _render_flat_template(template)
@@ -126,7 +126,7 @@ def test_render_flat_template() -> None:
 
 
 def test_render_flat_template_jsonencode() -> None:
-    from wafpass.fixer import BlockTemplate
+    from wombat.fixer import BlockTemplate
 
     template = BlockTemplate({"deadLetterTargetArn": "", "maxReceiveCount": 3}, mode="jsonencode")
     rendered = _render_flat_template(template)
@@ -225,7 +225,7 @@ def test_lookup_nested_default_for_new_providers() -> None:
 
 def test_provider_block_types_match_bare_provider_names() -> None:
     """Provider blocks like provider.hcloud {} should resolve to the hcloud provider."""
-    from wafpass.fix_providers import fix_provider_registry
+    from wombat.fix_providers import fix_provider_registry
 
     hcloud = fix_provider_registry.find_provider("terraform", None, "hcloud")
     assert hcloud is not None
@@ -440,7 +440,7 @@ def test_derive_not_empty_with_nested_default() -> None:
 
 
 def test_derive_not_empty_skips_empty_default() -> None:
-    from wafpass.fixer import SkippedFix
+    from wombat.fixer import SkippedFix
 
     assertion = _make_assertion("guardrail_configuration.guardrail_arn", "not_empty")
     check = _make_check(assertion)
@@ -472,7 +472,7 @@ def test_derive_already_passing_returns_none() -> None:
 
 
 def test_derive_unfixable_operator() -> None:
-    from wafpass.fixer import SkippedFix
+    from wombat.fixer import SkippedFix
 
     assertion = _make_assertion("policy", "not_contains_pattern", pattern="Action")
     check = _make_check(assertion)
@@ -872,7 +872,7 @@ def test_restore_backup_missing(tmp_path: Path) -> None:
 
 
 def test_compute_fix_delta() -> None:
-    from wafpass.models import CheckResult, ControlResult
+    from wombat.models import CheckResult, ControlResult
 
     control = Control(
         id="WAF-TEST-001",

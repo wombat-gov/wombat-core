@@ -1,4 +1,4 @@
-"""Unit tests for WAF++ PASS cryptographic attestation primitives."""
+"""Unit tests for WOMBATpass cryptographic attestation primitives."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from wafpass.attestation import (
+from wombat.attestation import (
     canonicalize_run,
     compute_run_hash,
     create_official_envelope,
@@ -23,13 +23,13 @@ from wafpass.attestation import (
     verify_local_attestation,
     verify_server_signature,
 )
-from wafpass.schema import WafpassResultSchema
+from wombat.schema import WombatResultSchema
 
 
 @pytest.fixture
 def sample_result():
-    """A minimal WafpassResultSchema for deterministic testing."""
-    return WafpassResultSchema(
+    """A minimal WombatResultSchema for deterministic testing."""
+    return WombatResultSchema(
         schema_version="1.0",
         project="acme-infra",
         branch="main",
@@ -63,7 +63,7 @@ def org_key_path(tmp_path: Path):
 def server_keys(tmp_path: Path):
     """Root + server key pair and certificates for testing."""
     root_key, root_cert = generate_root_certificate(
-        subject_name="WAF++ Test Root CA",
+        subject_name="Wombat Test Root CA",
         validity_days=365,
     )
     server_key_path = tmp_path / "server.key"
@@ -73,7 +73,7 @@ def server_keys(tmp_path: Path):
         server_private_key=server_key,
         root_private_key=root_key,
         root_cert_pem=root_cert,
-        subject_name="WAF++ Test Validation Server",
+        subject_name="Wombat Test Validation Server",
         validity_days=180,
     )
     return root_key, root_cert, server_key, server_cert
@@ -104,7 +104,7 @@ def test_key_file_permissions(org_key_path: Path):
 # ── Canonical serialization and hash ────────────────────────────────────────────
 
 
-def test_canonicalization_is_deterministic(sample_result: WafpassResultSchema):
+def test_canonicalization_is_deterministic(sample_result: WombatResultSchema):
     """The same result must always produce the exact same canonical bytes."""
     first = canonicalize_run(sample_result)
     second = canonicalize_run(sample_result)
@@ -112,9 +112,9 @@ def test_canonicalization_is_deterministic(sample_result: WafpassResultSchema):
     assert isinstance(first, bytes)
 
 
-def test_canonicalization_excludes_attestation(sample_result: WafpassResultSchema):
+def test_canonicalization_excludes_attestation(sample_result: WombatResultSchema):
     """Adding an attestation field must not change the canonical run hash."""
-    from wafpass.schema import LocalAttestationSchema
+    from wombat.schema import LocalAttestationSchema
 
     hash_before = compute_run_hash(sample_result)
 
@@ -128,7 +128,7 @@ def test_canonicalization_excludes_attestation(sample_result: WafpassResultSchem
     assert hash_before == hash_after
 
 
-def test_canonicalization_sorts_keys(sample_result: WafpassResultSchema):
+def test_canonicalization_sorts_keys(sample_result: WombatResultSchema):
     """Nested dictionaries must have sorted keys in the output."""
     canonical = canonicalize_run(sample_result)
     text = canonical.decode("utf-8")
@@ -144,7 +144,7 @@ def test_canonicalization_sorts_keys(sample_result: WafpassResultSchema):
 # ── Local attestation ─────────────────────────────────────────────────────────
 
 
-def test_sign_and_verify_run(sample_result: WafpassResultSchema, org_key_path: Path):
+def test_sign_and_verify_run(sample_result: WombatResultSchema, org_key_path: Path):
     """A signed run must verify successfully with the matching public key."""
     attestation = sign_run(sample_result, org_key_path)
     assert attestation.algorithm == "ed25519"
@@ -155,7 +155,7 @@ def test_sign_and_verify_run(sample_result: WafpassResultSchema, org_key_path: P
 
 
 def test_tampered_run_fails_verification(
-    sample_result: WafpassResultSchema, org_key_path: Path
+    sample_result: WombatResultSchema, org_key_path: Path
 ):
     """Changing the result after signing must break verification."""
     attestation = sign_run(sample_result, org_key_path)
@@ -166,7 +166,7 @@ def test_tampered_run_fails_verification(
 
 
 def test_tampered_signature_fails_verification(
-    sample_result: WafpassResultSchema, org_key_path: Path
+    sample_result: WombatResultSchema, org_key_path: Path
 ):
     """Changing the signature must break verification."""
     attestation = sign_run(sample_result, org_key_path)
@@ -179,7 +179,7 @@ def test_tampered_signature_fails_verification(
 # ── Offline and official envelopes ────────────────────────────────────────────
 
 
-def test_offline_envelope(sample_result: WafpassResultSchema, org_key_path: Path):
+def test_offline_envelope(sample_result: WombatResultSchema, org_key_path: Path):
     """Offline envelopes are self-signed and pending upgrade."""
     envelope = create_offline_envelope(sample_result, org_key_path)
     assert envelope.status == "offline"
@@ -192,7 +192,7 @@ def test_offline_envelope(sample_result: WafpassResultSchema, org_key_path: Path
 
 
 def test_official_envelope(
-    sample_result: WafpassResultSchema,
+    sample_result: WombatResultSchema,
     org_key_path: Path,
     server_keys: tuple,
 ):
@@ -217,7 +217,7 @@ def test_official_envelope(
 
 
 def test_upgrade_offline_to_official(
-    sample_result: WafpassResultSchema,
+    sample_result: WombatResultSchema,
     org_key_path: Path,
     server_keys: tuple,
 ):
@@ -245,7 +245,7 @@ def test_upgrade_offline_to_official(
 
 
 def test_server_signature_verifies(
-    sample_result: WafpassResultSchema,
+    sample_result: WombatResultSchema,
     org_key_path: Path,
     server_keys: tuple,
 ):
@@ -301,7 +301,7 @@ def test_certificate_chain_fails_with_wrong_root(server_keys: tuple):
 
 
 def test_official_envelope_with_raw_public_key(
-    sample_result: WafpassResultSchema,
+    sample_result: WombatResultSchema,
     org_key_path: Path,
     server_keys: tuple,
 ):
@@ -324,7 +324,7 @@ def test_official_envelope_with_raw_public_key(
 
 def test_envelope_without_result_fails_verification(org_key_path: Path):
     """An envelope that dropped the result cannot be verified locally."""
-    minimal_result = WafpassResultSchema()
+    minimal_result = WombatResultSchema()
     envelope = create_offline_envelope(minimal_result, org_key_path)
     envelope.result = None
 
@@ -343,7 +343,7 @@ def build_server_validation_from_fixture(
     root_cert: str,
 ) -> "ServerValidationSchema":
     """Build a server validation record using the test fixture certificates."""
-    from wafpass.attestation import build_server_validation
+    from wombat.attestation import build_server_validation
 
     return build_server_validation(
         canonical_hash=canonical_hash,

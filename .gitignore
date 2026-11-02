@@ -69,19 +69,19 @@ pyrightconfig.json
 controls/*.yml
 controls/*.yaml
 !controls/.gitkeep
-/.wafpass-export.yml
+/.wombat-export.yml
 /assets/regulatory/bsi_c5_2020.png
 /assets/regulatory/gdpr.png
-/.wafpass-state/index.json
-/.wafpass-state/runs/
+/.wombat-state/index.json
+/.wombat-state/runs/
 /tf_report.pdf
 /blast_radius.md
 /serve/last_results.json
 /.claude/settings.local.json
 /test.tmp
-/.wafpass-state/
-/.wafpass-server-controls/
-/insomnia/Insomnia_wafpass-server.json
+/.wombat-state/
+/.wombat-server-controls/
+/insomnia/Insomnia_wombat-server.json
 /tests/test_demo_command.py
 /tests/test_init_command.py
 /tests/test_installer.py
@@ -96,3 +96,9 @@ licenses.json
 requirements.sbom.txt
 .sbom-venv/
 .tools-venv/
+
+# Deprecated WAFpass-era runtime/config paths (kept ignored during migration)
+/.wafpass-export.yml
+/.wafpass-state/
+/.wafpass-server-controls/
+/insomnia/Insomnia_wafpass-server.json

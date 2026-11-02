@@ -1,7 +1,7 @@
 apiVersion: 1
 
 providers:
-  - name: WAF++ PASS
+  - name: WOMBATpass
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30

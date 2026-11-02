@@ -1,16 +1,16 @@
-# WAF++ PASS — Web UI (Internal Serve)
+# WOMBATpass — Web UI (Internal Serve)
 
-A CISO-friendly web dashboard for WAF++ PASS. Browse, filter, and manage all security controls through a visual interface — no YAML required.
+A CISO-friendly web dashboard for WOMBATpass. Browse, filter, and manage all security controls through a visual interface — no YAML required.
 
 ## Features
 
 | Section | Description |
 |---------|-------------|
-| **Dashboard** | Executive overview with WAF++ score, pillar breakdown, severity charts |
+| **Dashboard** | Executive overview with Wombat score, pillar breakdown, severity charts |
 | **Controls Library** | Browse all 70+ controls, filter by pillar/severity, search, manage waivers |
 | **Findings** | Detailed results from the latest scan with per-check breakdown |
 | **Compliance Matrix** | Which controls map to GDPR, ISO 27001:2022, BSI C5:2020, EUCS, CSRD |
-| **Waivers Manager** | Add/edit/remove risk acceptances, export as `.wafpass-skip.yml` |
+| **Waivers Manager** | Add/edit/remove risk acceptances, export as `.wombat-skip.yml` |
 | **Run Scan** | Trigger a scan against any IaC directory from the browser |
 
 ## Quick Start
@@ -22,7 +22,7 @@ A CISO-friendly web dashboard for WAF++ PASS. Browse, filter, and manage all sec
 pip install fastapi uvicorn
 
 # Or add to your project
-pip install "wafpass[web]"
+pip install "wombat-core[web]"
 ```
 
 ### 2. Start the server
@@ -45,12 +45,25 @@ http://localhost:8080
 
 The serve package is a **FastAPI** application that:
 
-1. Reads all WAF++ control YAML files from `../controls/` at startup
+1. Reads all Wombat control YAML files from `../controls/` at startup
 2. Injects them as server-side JSON into the Jinja2 HTML template
 3. Serves a single-page application using **Alpine.js** for interactivity and **Chart.js** for visualisations
 4. Exposes a REST API for scan execution, waiver management, and YAML export
 
 No build step, no Node.js, no bundler — just Python and CDN-loaded JavaScript.
+
+## Filesystem access and scan base
+
+`/api/scan`, `/api/auto-fix` and `/api/auto-fix/rollback` accept a filesystem
+path from the browser.  Every path is resolved and confined to
+`WOMBAT_SCAN_BASE_DIR` (default: the process working directory).  Relative
+traversal, absolute paths outside the base and symlink escapes are rejected,
+and auto-fix rollback only restores `.bak` files inside the same root.
+
+```bash
+# Expose a workspace to the internal UI
+WOMBAT_SCAN_BASE_DIR=/path/to/your/iac uvicorn serve.app:app --port 8080
+```
 
 ## API Reference
 
@@ -62,7 +75,7 @@ No build step, no Node.js, no bundler — just Python and CDN-loaded JavaScript.
 | `GET` | `/api/waivers` | Current waivers |
 | `PUT` | `/api/waivers` | Save waivers |
 | `DELETE` | `/api/waivers/{id}` | Remove a waiver |
-| `GET` | `/api/waivers/export` | Download `.wafpass-skip.yml` |
+| `GET` | `/api/waivers/export` | Download `.wombat-skip.yml` |
 | `POST` | `/api/scan` | Run a scan (body: `{path, iac, pillar}`) |
 | `GET` | `/api/results` | Latest scan results |
 | `GET` | `/api/docs` | OpenAPI documentation |
@@ -74,10 +87,10 @@ No build step, no Node.js, no bundler — just Python and CDN-loaded JavaScript.
 3. Click **Add Waiver** or click **Details → Waiver tab**
 4. Enter a reason (required), owner, and optional expiry date
 5. Click **Save Waiver**
-6. Go to **Waivers Manager → Export .wafpass-skip.yml**
-7. Copy the downloaded file to your IaC root as `.wafpass-skip.yml`
+6. Go to **Waivers Manager → Export .wombat-skip.yml**
+7. Copy the downloaded file to your IaC root as `.wombat-skip.yml`
 
-The waiver file follows the standard WAF++ PASS waiver format and can be used directly with `wafpass check --skip-file .wafpass-skip.yml`.
+The waiver file follows the standard WOMBATpass waiver format and can be used directly with `wombat check --skip-file .wombat-skip.yml`.
 
 ## File Structure
 
@@ -96,7 +109,7 @@ serve/
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CONTROLS_DIR` | `../controls/` | Path to WAF++ YAML control files |
+| `CONTROLS_DIR` | `../controls/` | Path to Wombat YAML control files |
 | `WAIVERS_FILE` | `./waivers.yml` | Where waivers are persisted |
 | `LAST_RESULTS_FILE` | `./last_results.json` | Cached scan results |
 
@@ -121,7 +134,7 @@ Add authentication (e.g., HTTP Basic Auth middleware or a reverse proxy with SSO
 
 - **fastapi** >= 0.100 — REST API framework
 - **uvicorn** — ASGI server
-- **pyyaml** — YAML parsing (already a wafpass dependency)
+- **pyyaml** — YAML parsing (already a wombat dependency)
 
 Frontend libraries loaded from CDN (no install needed):
 - **Tailwind CSS** 3.x — utility CSS

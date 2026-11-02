@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from wafpass.engine import run_controls
-from wafpass.iac.plugins.pulumi import PulumiPlugin
-from wafpass.loader import load_controls
+from wombat.engine import run_controls
+from wombat.iac.plugins.pulumi import PulumiPlugin
+from wombat.loader import load_controls
 
 FIXTURES = Path(__file__).parent / "fixtures"
 CONTROLS_DIR = FIXTURES / "controls"

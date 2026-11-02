@@ -6,16 +6,16 @@ from pathlib import Path
 
 import pytest
 
-from wafpass.engine import run_controls
-from wafpass.fixer import (
+from wombat.engine import run_controls
+from wombat.fixer import (
     PatchKind,
     apply_fix_plan,
     build_fix_plan,
     make_locator,
 )
-from wafpass.iac.plugins.cdk import CdkPlugin
-from wafpass.iac.plugins.pulumi import PulumiPlugin
-from wafpass.loader import load_controls
+from wombat.iac.plugins.cdk import CdkPlugin
+from wombat.iac.plugins.pulumi import PulumiPlugin
+from wombat.loader import load_controls
 
 FIXTURES = Path(__file__).parent / "fixtures"
 CONTROLS_DIR = FIXTURES / "controls"
@@ -85,7 +85,7 @@ def test_pulumi_fix_dry_run_injects_required_kwargs() -> None:
 
 
 def test_cdk_fix_improves_score_on_apply() -> None:
-    from wafpass.fixer import compute_fix_delta
+    from wombat.fixer import compute_fix_delta
 
     path = FIXTURES / "cdk_ts" / "non_compliant.ts"
     plugin = CdkPlugin()
@@ -113,7 +113,7 @@ def test_cdk_fix_improves_score_on_apply() -> None:
 
 
 def test_pulumi_fix_improves_score_on_apply() -> None:
-    from wafpass.fixer import compute_fix_delta
+    from wombat.fixer import compute_fix_delta
 
     path = FIXTURES / "pulumi_py" / "non_compliant.py"
     plugin = PulumiPlugin()

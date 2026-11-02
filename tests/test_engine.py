@@ -1,13 +1,13 @@
-"""Tests for wafpass.engine assertion evaluation."""
+"""Tests for wombat.engine assertion evaluation."""
 
 from __future__ import annotations
 
 import pytest
 
-from wafpass.engine import SkipAssertion, evaluate_assertion, get_nested, _find_matching_blocks, _provider_present, _run_check, run_controls
-from wafpass.iac.base import IaCBlock, IaCState
-from wafpass.models import Assertion, Check, Control, Scope
-from wafpass.parser import TerraformBlock, TerraformState
+from wombat.engine import SkipAssertion, evaluate_assertion, get_nested, _find_matching_blocks, _provider_present, _run_check, run_controls
+from wombat.iac.base import IaCBlock, IaCState
+from wombat.models import Assertion, Check, Control, Scope
+from wombat.parser import TerraformBlock, TerraformState
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

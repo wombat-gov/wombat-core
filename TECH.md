@@ -1,8 +1,8 @@
-# wafpass-core — Technical Reference
+# wombat-core — Technical Reference
 
-This document covers internal architecture, design decisions, technical debt, and contribution guidance for `wafpass-core`. For user-facing documentation see `README.md`.
+This document covers internal architecture, design decisions, technical debt, and contribution guidance for `wombat-core`. For user-facing documentation see `README.md`.
 
-> **BREAKING CHANGE:** `wafpass-server` endpoints are now under `/api/v1`. The CLI, wizard, and loader have been updated to call `/api/v1/auth/login`, `/api/v1/runs`, `/api/v1/controls`, `/api/v1/evidence`, etc.
+> **BREAKING CHANGE:** `wombat-server` endpoints are now under `/api/v1`. The CLI, wizard, and loader have been updated to call `/api/v1/auth/login`, `/api/v1/runs`, `/api/v1/controls`, `/api/v1/evidence`, etc.
 
 ---
 
@@ -10,15 +10,15 @@ This document covers internal architecture, design decisions, technical debt, an
 
 ```
 pass/
-├── wafpass/
-│   ├── __init__.py          # Public API surface (run_scan, WafpassResultSchema, …)
+├── wombat/
+│   ├── __init__.py          # Public API surface (run_scan, WombatResultSchema, …)
 │   ├── engine.py            # run_controls() — assertion evaluation loop
 │   ├── models.py            # Core dataclasses (Control, Check, CheckResult, …)
-│   ├── schema.py            # Pydantic models for wafpass-result.json contract
+│   ├── schema.py            # Pydantic models for wombat-result.json contract
 │   ├── loader.py            # load_controls() — YAML → Control objects
 │   ├── control_schema.py    # Pydantic validation models for control authoring
 │   ├── cli.py               # Typer CLI — check, fix, login, logout, whoami, ui, control, evidence
-│   ├── auth.py              # Credential store — JWT tokens in ~/.wafpass/credentials.json
+│   ├── auth.py              # Credential store — JWT tokens in ~/.wombat/credentials.json
 │   ├── reporter.py          # Rich terminal output
 │   ├── pdf_reporter.py      # ReportLab PDF generation
 │   ├── baseline.py          # Baseline comparison (change tracking)
@@ -42,7 +42,7 @@ pass/
 │   │       └── pulumi.py    # Pulumi YAML/JSON parser (stub)
 │   └── export/              # Observability export plugins
 │       ├── base.py          # ExportPlugin protocol, ExportResult dataclass
-│       ├── config.py        # .wafpass-export.yml loader (${ENV_VAR} expansion)
+│       ├── config.py        # .wombat-export.yml loader (${ENV_VAR} expansion)
 │       ├── registry.py      # Export plugin registry singleton
 │       └── plugins/
 │           ├── grafana.py   # Prometheus Pushgateway (fully implemented)
@@ -51,7 +51,7 @@ pass/
 │           ├── splunk.py    # Splunk HEC (stub)
 │           ├── slack.py     # Slack webhook (stub)
 │           └── webhook.py   # Generic HTTP POST (fully implemented)
-├── controls/                # 73 WAF++ control YAML files (WAF-*.yml)
+├── controls/                # 73 Wombat control YAML files (WAF-*.yml)
 ├── hooks/
 │   ├── pre-commit           # Pre-commit hook script (bash, POSIX-compatible)
 │   ├── install.sh           # Installer for macOS / Linux / Git Bash
@@ -82,7 +82,7 @@ run_controls(controls, state)        ← evaluate assertions
 list[ControlResult]
        │
        ▼
-WafpassResultSchema.model_dump_json() ← serialize to wafpass-result.json
+WombatResultSchema.model_dump_json() ← serialize to wombat-result.json
 ```
 
 ### IaC plugin system
@@ -98,7 +98,7 @@ class IaCPlugin(Protocol):
     def extract_regions(state: IaCState) -> list[tuple[str, str]]: ...
 ```
 
-Plugins auto-register on import of `wafpass/__init__.py`. The registry is keyed by name, so `registry.get("terraform")` always returns the Terraform plugin.
+Plugins auto-register on import of `wombat/__init__.py`. The registry is keyed by name, so `registry.get("terraform")` always returns the Terraform plugin.
 
 **Adding a new plugin:** Create a class in `iac/plugins/`, implement the protocol, and call `registry.register(MyPlugin())` at module level. No changes needed elsewhere.
 
@@ -122,9 +122,9 @@ Assertions support 22+ operators. The `op` field maps to a handler function in `
 
 ### Result schema contract (`schema.py`)
 
-`WafpassResultSchema` is the stable JSON contract between `wafpass-core`, `wafpass-server`, and any downstream tooling. The server's `RunCreate` schema mirrors it. The schema is versioned (`schema_version = "1.1"`).
+`WombatResultSchema` is the stable JSON contract between `wombat-core`, `wombat-server`, and any downstream tooling. The server's `RunCreate` schema mirrors it. The schema is versioned (`schema_version = "1.1"`).
 
-**Design rule:** Never add required fields to `WafpassResultSchema` without a default — doing so is a breaking change for clients that POST stored results.
+**Design rule:** Never add required fields to `WombatResultSchema` without a default — doing so is a breaking change for clients that POST stored results.
 
 ### Control YAML format
 
@@ -145,15 +145,15 @@ Key YAML fields that affect engine behaviour:
 
 ## Authentication module (`auth.py`)
 
-`wafpass/auth.py` is a zero-knowledge credential store. It handles the full token lifecycle for the `wafpass login` / `logout` / `whoami` CLI commands and the `--push @` shorthand in `wafpass check`.
+`wombat/auth.py` is a zero-knowledge credential store. It handles the full token lifecycle for the `wombat login` / `logout` / `whoami` CLI commands and the `--push @` shorthand in `wombat check`.
 
 ### Credentials file
 
-`~/.wafpass/credentials.json` (mode `0o600`). Stored fields:
+`~/.wombat/credentials.json` (mode `0o600`). Stored fields:
 
 | Field | Description |
 |-------|-------------|
-| `server_url` | Base URL of the wafpass-server (no trailing slash) |
+| `server_url` | Base URL of the wombat-server (no trailing slash) |
 | `access_token` | Short-lived HS256 JWT |
 | `refresh_token` | Opaque long-lived token |
 | `username` | Username (informational) |
@@ -165,13 +165,13 @@ The password is **never** written to disk.
 ### Token flow
 
 ```
-wafpass login <server_url>
+wombat login <server_url>
     │  POST /api/v1/auth/login {username, password}
     ▼
-do_login() → Credentials stored in ~/.wafpass/credentials.json
+do_login() → Credentials stored in ~/.wombat/credentials.json
     │  access_token, refresh_token, role, expires_at
     ▼
-wafpass check --push @
+wombat check --push @
     │  resolve_push_target("@")
     ▼
 get_valid_credentials()
@@ -197,7 +197,7 @@ Treats the token as expired 30 seconds before the actual `exp` timestamp to avoi
 
 ### Evidence CLI subcommands
 
-`wafpass evidence` is a Typer sub-app that wraps three server endpoints:
+`wombat evidence` is a Typer sub-app that wraps three server endpoints:
 
 | Subcommand | Server call | Description |
 |------------|-------------|-------------|
@@ -205,7 +205,7 @@ Treats the token as expired 30 seconds before the actual `exp` timestamp to avoi
 | `evidence list` | `GET /api/v1/evidence` | List locked packages (with optional `--project` filter) |
 | `evidence show` | `GET /api/v1/evidence/{id}` | Print metadata; `--hash` prints only the SHA-256 digest |
 
-All three subcommands require an active `wafpass login` session.
+All three subcommands require an active `wombat login` session.
 
 ---
 
@@ -270,7 +270,7 @@ Bicep is functional but has significantly less assertion operator coverage than 
 
 ## Git hooks
 
-The `hooks/` directory contains a pre-commit hook that runs `wafpass check` against staged IaC files before every commit.  It is committed to the repository so the whole team can install it from source with a single command.
+The `hooks/` directory contains a pre-commit hook that runs `wombat check` against staged IaC files before every commit.  It is committed to the repository so the whole team can install it from source with a single command.
 
 ### Installation
 
@@ -298,11 +298,11 @@ On every `git commit` the hook:
    | `*.ts` / `*.py` when `cdk.json` is present | `cdk` |
    | `*.ts` / `*.py` / `*.go` when `Pulumi.yaml` is present | `pulumi` |
 
-3. Runs `wafpass check --iac <type> --controls-dir <dir> --severity <level> --fail-on fail` for each detected IaC type.
-4. Validates any staged `controls/*.yml` files with `wafpass control validate`.
+3. Runs `wombat check --iac <type> --controls-dir <dir> --severity <level> --fail-on fail` for each detected IaC type.
+4. Validates any staged `controls/*.yml` files with `wombat control validate`.
 5. Blocks the commit and prints remediation guidance if any check fails.
 
-When `wafpass` is not found on `PATH` the hook prints a warning but **does not block the commit** (unless `WAFPASS_STRICT=1` is set).
+When `wombat` is not found on `PATH` the hook prints a warning but **does not block the commit** (unless `WOMBAT_STRICT=1` is set).
 
 ### Configuration
 
@@ -310,10 +310,10 @@ All settings are optional and can be set as environment variables or in `.env`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `WAFPASS_CONTROLS_DIR` | `controls` | Path to the controls directory |
-| `WAFPASS_SEVERITY` | `high` | Minimum severity to enforce (`low`, `medium`, `high`, `critical`) |
-| `WAFPASS_FAIL_ON` | `fail` | When to exit non-zero: `fail`, `skip`, or `any` |
-| `WAFPASS_STRICT` | `0` | Set to `1` to abort the commit when wafpass is not installed |
+| `WOMBAT_CONTROLS_DIR` | `controls` | Path to the controls directory |
+| `WOMBAT_SEVERITY` | `high` | Minimum severity to enforce (`low`, `medium`, `high`, `critical`) |
+| `WOMBAT_FAIL_ON` | `fail` | When to exit non-zero: `fail`, `skip`, or `any` |
+| `WOMBAT_STRICT` | `0` | Set to `1` to abort the commit when wombat is not installed |
 
 ### IDE compatibility
 
@@ -321,7 +321,7 @@ All settings are optional and can be set as environment variables or in `.env`:
 |---|---|
 | **Git CLI** | Hook runs automatically via `.git/hooks/pre-commit`. |
 | **VS Code** | The built-in Git integration invokes `.git/hooks` automatically — no extra setup needed. |
-| **IntelliJ / JetBrains IDEs** | Hooks run by default (Settings → Version Control → Git → "Run Git hooks"). If wafpass is not found, ensure the IDE shell path resolves to your login shell (Settings → Tools → Terminal → Shell path), or set `WAFPASS_STRICT=0` to make the hook advisory rather than blocking. |
+| **IntelliJ / JetBrains IDEs** | Hooks run by default (Settings → Version Control → Git → "Run Git hooks"). If wombat is not found, ensure the IDE shell path resolves to your login shell (Settings → Tools → Terminal → Shell path), or set `WOMBAT_STRICT=0` to make the hook advisory rather than blocking. |
 
 ### Bypassing the hook
 
@@ -357,8 +357,8 @@ Tests live in `tests/`. Key test areas:
 
 1. Create `controls/WAF-XXX-NNN.yml` following the schema in `README.md`
 2. Set `automated: true` on any checks the engine can evaluate
-3. Run `wafpass check tests/fixtures/` to validate parsing
-4. Validate schema: `python -c "from wafpass.loader import load_controls; from pathlib import Path; cs = load_controls(Path('controls')); print(len(cs), 'controls loaded')`
+3. Run `wombat check tests/fixtures/` to validate parsing
+4. Validate schema: `python -c "from wombat.loader import load_controls; from pathlib import Path; cs = load_controls(Path('controls')); print(len(cs), 'controls loaded')`
 
 Controls with no `automated: true` checks are still returned by `load_controls()` and stored in `controls_meta` by the server, but they never generate findings.
 
@@ -366,7 +366,7 @@ Controls with no `automated: true` checks are still returned by `load_controls()
 
 ## Environment variables
 
-`wafpass-core` is stateless and works fully offline without any environment configuration. All variables are optional.
+`wombat-core` is stateless and works fully offline without any environment configuration. All variables are optional.
 
 Copy `.env.example` to `.env` and source it (or use direnv) to avoid passing flags on every invocation:
 
@@ -377,9 +377,9 @@ export $(grep -v '^#' .env | xargs)
 
 | Variable | Description |
 |----------|-------------|
-| `WAFPASS_SERVER_URL` | Auto-POST results to wafpass-server after every `wafpass check` run. Equivalent to `--push <url>`. Must include the `/api/v1/runs` path: `http://localhost:8000/api/v1/runs`. |
-| `${*}` in `.wafpass-export.yml` | Any `${VAR}` placeholder in export config is expanded from the environment at load time. See `.env.example` for common export plugin secrets. |
-| `EDITOR` | Editor launched by `wafpass wizard` for interactive control authoring. Falls back to `vi` if unset. |
+| `WOMBAT_SERVER_URL` | Auto-POST results to wombat-server after every `wombat check` run. Equivalent to `--push <url>`. Must include the `/api/v1/runs` path: `http://localhost:8000/api/v1/runs`. |
+| `${*}` in `.wombat-export.yml` | Any `${VAR}` placeholder in export config is expanded from the environment at load time. See `.env.example` for common export plugin secrets. |
+| `EDITOR` | Editor launched by `wombat wizard` for interactive control authoring. Falls back to `vi` if unset. |
 
 ---
 
@@ -387,7 +387,7 @@ export $(grep -v '^#' .env | xargs)
 
 1. Bump `VERSION` file and `pyproject.toml` `version` field
 2. Update `CHANGELOG.md`
-3. `python -m build` → produces `dist/wafpass_core-X.Y.Z-py3-none-any.whl`
+3. `python -m build` → produces `dist/wombat_core-X.Y.Z-py3-none-any.whl`
 4. Upload to PyPI: `twine upload dist/*`
 5. Tag the release in git
 
@@ -402,4 +402,4 @@ export $(grep -v '^#' .env | xargs)
 | `pyyaml` | YAML control definitions |
 | `typer` + `rich` | CLI framework + terminal formatting; typer wraps Click with type annotations |
 | `reportlab` (optional) | PDF generation — optional so the core package stays lightweight |
-| `fastapi` (optional) | Only needed for `wafpass ui` — pulls in uvicorn; optional extra `[web]` |
+| `fastapi` (optional) | Only needed for `wombat ui` — pulls in uvicorn; optional extra `[web]` |

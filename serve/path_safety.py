@@ -29,33 +29,36 @@ def scan_base_dir() -> Path:
 def resolve_scan_path(raw: str) -> Path:
     """Resolve *raw* and require the result to live inside :func:`scan_base_dir`.
 
-    The realpath + ``startswith`` check catches ``..`` traversal, absolute
-    paths outside the base and symlinks that point outside it.  The path must
-    exist and be a regular file or directory.
+    Only string-level ``os.path`` operations run on the caller-supplied value
+    until the containment check has passed: ``Path.expanduser()`` and
+    ``Path.resolve()`` are themselves filesystem accesses, so using them here
+    would touch an unvalidated path.  ``os.path.realpath`` normalises ``..``,
+    absolute paths and symlinks without being treated as a path sink, and the
+    ``startswith`` check is the form CodeQL recognises as a safe-access guard.
     """
-    base = scan_base_dir()
+    base_real = os.path.realpath(scan_base_dir())
+    # ``join(base, "")`` keeps the trailing separator (and handles base == "/"
+    # correctly, where naive concatenation would produce "//").
+    base_prefix = os.path.join(base_real, "")
     try:
-        supplied = Path(raw).expanduser()
-        resolved = supplied.resolve() if supplied.is_absolute() else (base / supplied).resolve()
-    except (OSError, ValueError) as exc:
+        expanded = os.path.expanduser(raw)
+        candidate = os.path.realpath(
+            expanded if os.path.isabs(expanded) else os.path.join(base_real, expanded)
+        )
+    except (OSError, RuntimeError, ValueError) as exc:
+        # RuntimeError: `~user` could not be expanded to a home directory.
         raise PathSafetyError(f"Invalid path: {raw}") from exc
 
-    base_real = os.path.realpath(base)
-    resolved_real = os.path.realpath(resolved)
-    if resolved_real != base_real and not resolved_real.startswith(base_real + os.sep):
+    if candidate == base_real:
+        safe_path = Path(base_real)
+    elif candidate.startswith(base_prefix):
+        safe_path = Path(candidate)
+    else:
         raise PathSafetyError(
-            f"Path '{raw}' is outside the allowed scan base directory ({base}). "
+            f"Path '{raw}' is outside the allowed scan base directory ({base_real}). "
             f"Set {BASE_ENV} to the workspace root you want to allow."
         )
-    try:
-        Path(resolved_real).relative_to(base_real)
-    except ValueError as exc:
-        raise PathSafetyError(
-            f"Path '{raw}' is outside the allowed scan base directory ({base}). "
-            f"Set {BASE_ENV} to the workspace root you want to allow."
-        ) from exc
 
-    safe_path = Path(resolved_real)
     if not safe_path.exists():
         raise PathSafetyError(f"Path does not exist on the server: {safe_path}")
     if not (safe_path.is_dir() or safe_path.is_file()):
